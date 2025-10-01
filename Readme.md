@@ -391,10 +391,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - FastAPI and SQLAlchemy communities
 - Next.js and TailwindCSS projects
 
-## Support
 
-For questions, issues, or feature requests, please open an issue on GitHub or contact the maintainers.
-
-**Project Status**: Active Development 🚀
-
-**Last Updated**: October 2025
