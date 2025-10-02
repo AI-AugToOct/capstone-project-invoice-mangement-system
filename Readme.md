@@ -213,48 +213,10 @@ invoice-management/
 4. **Confirm & Save**: User confirms accuracy and saves to PostgreSQL database
 5. **View Dashboard**: Access all invoices through the interactive dashboard with search and filter capabilities
 
-## 🗺️ Roadmap
 
-- [ ] **Analytics Dashboard**: Visualization of spending patterns and vendor analysis
-- [ ] **Export Functionality**: Export invoices to CSV, Excel, and PDF formats
-- [ ] **Multi-user Support**: Role-based access control and user authentication
-- [ ] **Email Integration**: Automatic invoice extraction from email attachments
-- [ ] **Mobile App**: React Native mobile application for on-the-go invoice scanning
-- [ ] **Advanced Search**: Full-text search with filters by date range, vendor, and amount
-- [ ] **Duplicate Detection**: AI-powered duplicate invoice detection
-- [ ] **Multi-currency Support**: Automatic currency conversion and multi-currency reporting
-- [ ] **Audit Trail**: Complete history of invoice modifications and user actions
-- [ ] **API Webhooks**: Real-time notifications for invoice processing events
 
-## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-Please ensure your code follows PEP 8 style guidelines and includes appropriate tests.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-
-## 🙏 Acknowledgments
-
-- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework for building APIs
-- [Streamlit](https://streamlit.io/) - The fastest way to build data apps
-- [Supabase](https://supabase.com/) - Open source Firebase alternative
-- [Qwen](https://github.com/QwenLM/Qwen) - Alibaba Cloud's Vision-Language Model
-- [SQLAlchemy](https://www.sqlalchemy.org/) - Python SQL toolkit and ORM
 
 ---
 
