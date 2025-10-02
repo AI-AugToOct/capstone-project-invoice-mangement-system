@@ -3,10 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
 from backend.database import get_db
-from backend.models.invoice import Invoice
+from backend.models.invoice_model import Invoice
 from backend.schemas.invoice_schema import InvoiceCreate
 
-# لازم نعرف router قبل أي endpoint
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
 logger = logging.getLogger(__name__)
 
@@ -48,10 +47,6 @@ def create_invoice(invoice_data: InvoiceCreate, db: Session = Depends(get_db)):
 def get_invoices(db: Session = Depends(get_db)):
     try:
         invoices = db.query(Invoice).all()
-        return {
-            "status": "success",
-            "count": len(invoices),
-            "data": [inv.to_dict() for inv in invoices]
-        }
+        return {"status": "success", "count": len(invoices), "data": [inv.to_dict() for inv in invoices]}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error retrieving invoices.")
