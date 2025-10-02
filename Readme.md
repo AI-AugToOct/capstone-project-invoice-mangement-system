@@ -1,142 +1,113 @@
-# Invoice Management & Analysis
+# 🧾 Invoice Management & Analysis
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
-A modern web-based invoice management system that leverages Vision-Language Models (VLMs) to extract, analyze, and query invoice data in both Arabic and English. Built with FastAPI, PostgreSQL, and Next.js for efficient document processing and intelligent data retrieval.
+## 📋 Overview
 
-## Overview
+Invoice Management & Analysis is a comprehensive capstone project that leverages AI-powered OCR to streamline invoice processing. The system uses the Qwen 32B Vision-Language Model to automatically extract metadata and line items from invoices in both Arabic and English, providing businesses with an efficient way to digitize and manage their financial documents.
 
-This system automates invoice data extraction using state-of-the-art VLMs with OCR capabilities. Users can upload invoices in various formats, and the system automatically extracts structured metadata and line items, stores them in a PostgreSQL database, and enables natural language querying through Retrieval-Augmented Generation (RAG).
+## ✨ Features
 
-### Key Capabilities
+- **Multi-format Upload**: Support for JPG, PNG, and PDF invoice formats through an intuitive Streamlit interface
+- **Bilingual OCR**: Advanced data extraction powered by Qwen 32B VLM for Arabic and English invoices
+- **Smart Extraction**: Automatic detection of invoice metadata (date, vendor, total) and line items (description, quantity, price)
+- **Human-in-the-Loop**: Review and edit extracted data before committing to database
+- **Persistent Storage**: Secure storage in PostgreSQL via Supabase cloud infrastructure
+- **Interactive Dashboard**: View, search, and manage all saved invoices in real-time
+- **RESTful API**: Comprehensive API with auto-generated Swagger documentation
+- **Cloud-Ready**: Deployed on Streamlit Cloud for easy access and scalability
 
-- **Multi-language Support**: Process invoices in Arabic and English seamlessly
-- **Intelligent Extraction**: Leverage VLMs (Qwen, Florence, SmolVLM, Dallah) for accurate OCR
-- **Structured Storage**: Automatically parse and store invoice data in PostgreSQL
-- **Natural Language Queries**: Ask questions about your invoices using RAG
-- **RESTful API**: Easy integration with existing systems
-- **Modern UI**: Clean, responsive frontend for visualization
-
-## Features
-
-- ✅ **Invoice Upload**: Support for PNG, JPEG, and PDF formats
-- ✅ **OCR Extraction**: Powered by multiple VLM models for high accuracy
-  - Qwen/Qwen2-VL for general-purpose extraction
-  - SmolVLM for efficient processing
-  - Florence-2-base for document understanding
-  - Dallah for Arabic-optimized OCR
-- ✅ **Structured Data Output**: JSON format with complete invoice details
-  - Invoice metadata (ID, date, subtotal, credit, tax, balance due)
-  - Line items (quantity, description, unit price, amount)
-- ✅ **Database Persistence**: PostgreSQL with SQLAlchemy ORM
-- ✅ **Intelligent Search**: RAG-powered invoice querying and comparison
-- ✅ **RESTful API**: Comprehensive endpoints for all operations
-- ✅ **Demo Frontend**: Next.js application with TailwindCSS
-- ✅ **Containerized Deployment**: Docker and Docker Compose support
-
-## Architecture
+## 🏗️ Architecture
 
 ```mermaid
 graph TB
-    A[User] -->|Upload Invoice| B[Next.js Frontend]
-    B -->|API Request| C[FastAPI Backend]
-    C -->|Process Image| D[VLM Models]
-    D -->|Extract Data| E[JSON Parser]
-    E -->|Store| F[PostgreSQL Database]
-    F -->|Query| G[SQLAlchemy ORM]
-    C -->|RAG Query| H[Vector DB<br/>pgvector/FAISS]
-    H -->|Retrieve Context| C
-    C -->|Response| B
-    B -->|Display| A
+    subgraph "Frontend Layer"
+        A[Streamlit UI]
+    end
     
-    subgraph "VLM Layer"
-        D1[Qwen2-VL]
-        D2[SmolVLM]
-        D3[Florence-2]
-        D4[Dallah]
-        D --> D1
-        D --> D2
-        D --> D3
-        D --> D4
+    subgraph "Backend Layer"
+        B[FastAPI Server]
+        C[SQLAlchemy ORM]
+    end
+    
+    subgraph "AI/ML Layer"
+        D[Qwen 32B VLM]
     end
     
     subgraph "Data Layer"
-        F1[invoices table]
-        F2[items table]
-        F --> F1
-        F --> F2
+        E[(PostgreSQL on Supabase)]
     end
+    
+    A -->|HTTP Requests| B
+    B -->|Invoice Processing| D
+    B -->|ORM Queries| C
+    C -->|SQL Operations| E
+    D -->|Extracted Data| B
+    B -->|JSON Response| A
+    
+    style A fill:#ff4b4b
+    style B fill:#009688
+    style D fill:#8b5cf6
+    style E fill:#3ecf8e
 ```
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-### Backend
-- **Framework**: FastAPI
-- **Database**: PostgreSQL 15+
-- **ORM**: SQLAlchemy
-- **Vector Search**: pgvector / FAISS (optional)
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | FastAPI, SQLAlchemy, Uvicorn |
+| **Frontend** | Streamlit |
+| **Database** | PostgreSQL (Supabase) |
+| **AI/ML** | Qwen 32B Vision-Language Model |
+| **Deployment** | Streamlit Cloud, Supabase Cloud |
+| **Language** | Python 3.9+ |
 
-### AI/ML
-- **VLM Models**:
-  - Qwen/Qwen2-VL
-  - SmolVLM
-  - Florence-2-base
-  - Dallah (Arabic optimization)
-- **RAG**: Retrieval-Augmented Generation for intelligent queries
+## 🗄️ Database Schema
 
-### Frontend
-- **Framework**: Next.js 14+
-- **Styling**: TailwindCSS
-- **UI Components**: Modern, responsive design
+```sql
+-- Invoices Table
+CREATE TABLE invoices (
+    id SERIAL PRIMARY KEY,
+    invoice_number VARCHAR(100) UNIQUE NOT NULL,
+    vendor_name VARCHAR(255) NOT NULL,
+    invoice_date DATE NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'SAR',
+    file_path VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-### DevOps
-- **Containerization**: Docker
-- **Orchestration**: Docker Compose
-- **API Documentation**: Auto-generated with FastAPI (Swagger/OpenAPI)
+-- Items Table
+CREATE TABLE items (
+    id SERIAL PRIMARY KEY,
+    invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
+    description TEXT NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
+    unit_price DECIMAL(10, 2) NOT NULL,
+    line_total DECIMAL(10, 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-## Database Schema
+-- Index for faster queries
+CREATE INDEX idx_invoice_number ON invoices(invoice_number);
+CREATE INDEX idx_invoice_date ON invoices(invoice_date);
+CREATE INDEX idx_invoice_id_items ON items(invoice_id);
+```
 
-### `invoices` Table
-
-| Column       | Type         | Description                    |
-|--------------|--------------|--------------------------------|
-| id           | SERIAL       | Primary key                    |
-| invoice_id   | VARCHAR(100) | Unique invoice identifier      |
-| date         | DATE         | Invoice date                   |
-| subtotal     | DECIMAL(10,2)| Subtotal amount                |
-| credit       | DECIMAL(10,2)| Credit amount                  |
-| tax          | DECIMAL(10,2)| Tax amount                     |
-| balance_due  | DECIMAL(10,2)| Balance due                    |
-| created_at   | TIMESTAMP    | Record creation timestamp      |
-| updated_at   | TIMESTAMP    | Record update timestamp        |
-
-### `items` Table
-
-| Column       | Type         | Description                    |
-|--------------|--------------|--------------------------------|
-| id           | SERIAL       | Primary key                    |
-| invoice_id   | INTEGER      | Foreign key to invoices.id     |
-| quantity     | INTEGER      | Item quantity                  |
-| description  | TEXT         | Item description               |
-| unit_price   | DECIMAL(10,2)| Price per unit                 |
-| amount       | DECIMAL(10,2)| Total line item amount         |
-
-### Relationships
-- One invoice has many items (one-to-many relationship)
-- Foreign key constraint: `items.invoice_id` → `invoices.id`
-
-## Installation & Setup
+## 🚀 Setup Instructions
 
 ### Prerequisites
-- Docker and Docker Compose installed
-- Python 3.10+ (for local development)
-- Node.js 18+ (for frontend development)
-- PostgreSQL 15+ (if running without Docker)
 
-### Quick Start with Docker
+- Python 3.9 or higher
+- PostgreSQL database (Supabase account)
+- Git
+
+### Local Development Setup
 
 1. **Clone the repository**
    ```bash
@@ -144,251 +115,149 @@ graph TB
    cd invoice-management
    ```
 
-2. **Set up environment variables**
+2. **Create virtual environment**
    ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your configuration:
-   ```env
-   # Database
-   POSTGRES_USER=invoiceuser
-   POSTGRES_PASSWORD=securepassword
-   POSTGRES_DB=invoicedb
-   DATABASE_URL=postgresql://invoiceuser:securepassword@db:5432/invoicedb
-   
-   # API
-   API_HOST=0.0.0.0
-   API_PORT=8000
-   
-   # VLM Models (adjust based on your setup)
-   VLM_MODEL=qwen2-vl
-   MODEL_CACHE_DIR=./models
-   
-   # Vector DB (optional)
-   USE_VECTOR_DB=true
-   VECTOR_DB_TYPE=pgvector
-   ```
-
-3. **Launch with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Documentation: http://localhost:8000/docs
-
-### Manual Setup (Development)
-
-#### Backend Setup
-
-1. **Create virtual environment**
-   ```bash
-   cd backend
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-2. **Install dependencies**
+3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Initialize database**
-   ```bash
-   # Make sure PostgreSQL is running
-   alembic upgrade head
+4. **Configure environment variables**
+   
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL=postgresql://user:password@host:port/database
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_KEY=your_supabase_anon_key
+   QWEN_API_KEY=your_qwen_api_key
    ```
 
-4. **Run the backend**
+5. **Initialize the database**
    ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   python -m backend.database.init_db
    ```
 
-#### Frontend Setup
-
-1. **Install dependencies**
+6. **Run the backend server**
    ```bash
-   cd frontend
-   npm install
+   uvicorn backend.main:app --reload
+   ```
+   The API will be available at `http://localhost:8000`
+   
+   Swagger docs: `http://localhost:8000/docs`
+
+7. **Run the frontend (in a new terminal)**
+   ```bash
+   streamlit run app.py
+   ```
+   The app will open at `http://localhost:8501`
+
+### 📦 Project Structure
+
+```
+invoice-management/
+├── backend/
+│   ├── main.py                 # FastAPI application
+│   ├── models.py               # SQLAlchemy models
+│   ├── schemas.py              # Pydantic schemas
+│   ├── database/
+│   │   ├── connection.py       # Database connection
+│   │   └── init_db.py          # Database initialization
+│   ├── services/
+│   │   ├── ocr_service.py      # Qwen VLM integration
+│   │   └── invoice_service.py  # Business logic
+│   └── routers/
+│       └── invoices.py         # API endpoints
+├── app.py                      # Streamlit frontend
+├── requirements.txt
+├── .env
+├── .gitignore
+└── README.md
+```
+
+### 🌐 Deployment on Streamlit Cloud
+
+1. **Push your code to GitHub**
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
    ```
 
-2. **Run development server**
-   ```bash
-   npm run dev
-   ```
+2. **Deploy to Streamlit Cloud**
+   - Go to [share.streamlit.io](https://share.streamlit.io)
+   - Click "New app"
+   - Select your repository, branch, and `app.py`
+   - Add your environment variables in the "Advanced settings"
+   - Click "Deploy"
 
-### Database Migrations
+3. **Backend Deployment**
+   
+   For the FastAPI backend, consider deploying to:
+   - **Railway**: Easy deployment with GitHub integration
+   - **Render**: Free tier available with automatic deployments
+   - **Heroku**: Classic platform with straightforward setup
+   
+   Update your Streamlit app with the deployed backend URL.
 
-To create new migrations after schema changes:
-```bash
-alembic revision --autogenerate -m "Description of changes"
-alembic upgrade head
-```
+## 📊 Example Workflow
 
-## Example Workflow
+1. **Upload Invoice**: User uploads an invoice image or PDF through the Streamlit interface
+2. **AI Extraction**: Qwen 32B VLM processes the document and extracts:
+   - Invoice number, date, vendor name, total amount
+   - Line items with descriptions, quantities, and prices
+3. **Review & Edit**: User reviews the extracted data in an editable form
+4. **Confirm & Save**: User confirms accuracy and saves to PostgreSQL database
+5. **View Dashboard**: Access all invoices through the interactive dashboard with search and filter capabilities
 
-### 1. Upload Invoice
+## 🗺️ Roadmap
 
-**Request:**
-```bash
-curl -X POST "http://localhost:8000/api/v1/invoices/upload" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@invoice.png"
-```
+- [ ] **Analytics Dashboard**: Visualization of spending patterns and vendor analysis
+- [ ] **Export Functionality**: Export invoices to CSV, Excel, and PDF formats
+- [ ] **Multi-user Support**: Role-based access control and user authentication
+- [ ] **Email Integration**: Automatic invoice extraction from email attachments
+- [ ] **Mobile App**: React Native mobile application for on-the-go invoice scanning
+- [ ] **Advanced Search**: Full-text search with filters by date range, vendor, and amount
+- [ ] **Duplicate Detection**: AI-powered duplicate invoice detection
+- [ ] **Multi-currency Support**: Automatic currency conversion and multi-currency reporting
+- [ ] **Audit Trail**: Complete history of invoice modifications and user actions
+- [ ] **API Webhooks**: Real-time notifications for invoice processing events
 
-### 2. VLM Extraction Output
-
-**Response JSON:**
-```json
-{
-  "invoice_id": "INV-2025-001",
-  "date": "2025-09-15",
-  "subtotal": 1250.00,
-  "credit": 0.00,
-  "tax": 187.50,
-  "balance_due": 1437.50,
-  "items": [
-    {
-      "quantity": 5,
-      "description": "Premium Office Chairs",
-      "unit_price": 150.00,
-      "amount": 750.00
-    },
-    {
-      "quantity": 2,
-      "description": "Standing Desks",
-      "unit_price": 250.00,
-      "amount": 500.00
-    }
-  ],
-  "status": "success",
-  "processing_time": 2.34
-}
-```
-
-### 3. Query Invoices (RAG)
-
-**Example Queries:**
-```bash
-# Query invoices by date range
-curl -X POST "http://localhost:8000/api/v1/invoices/query" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Show me all invoices from September 2025"}'
-
-# Compare vendors
-curl -X POST "http://localhost:8000/api/v1/invoices/query" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Compare totals between Vendor A and Vendor B"}'
-
-# Analytics query
-curl -X POST "http://localhost:8000/api/v1/invoices/query" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is the average invoice amount this quarter?"}'
-```
-
-### 4. Retrieve Invoice Details
-
-**Request:**
-```bash
-curl -X GET "http://localhost:8000/api/v1/invoices/INV-2025-001"
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "invoice_id": "INV-2025-001",
-  "date": "2025-09-15",
-  "subtotal": 1250.00,
-  "credit": 0.00,
-  "tax": 187.50,
-  "balance_due": 1437.50,
-  "items": [
-    {
-      "id": 1,
-      "quantity": 5,
-      "description": "Premium Office Chairs",
-      "unit_price": 150.00,
-      "amount": 750.00
-    },
-    {
-      "id": 2,
-      "quantity": 2,
-      "description": "Standing Desks",
-      "unit_price": 250.00,
-      "amount": 500.00
-    }
-  ],
-  "created_at": "2025-09-15T10:30:00Z"
-}
-```
-
-## API Endpoints
-
-### Invoice Operations
-- `POST /api/v1/invoices/upload` - Upload and process invoice
-- `GET /api/v1/invoices/{invoice_id}` - Get invoice details
-- `GET /api/v1/invoices` - List all invoices (with pagination)
-- `DELETE /api/v1/invoices/{invoice_id}` - Delete invoice
-
-### Query & Analysis
-- `POST /api/v1/invoices/query` - Natural language query (RAG)
-- `POST /api/v1/invoices/compare` - Compare multiple invoices
-- `GET /api/v1/invoices/analytics` - Get analytics dashboard data
-
-### Health & Status
-- `GET /health` - System health check
-- `GET /api/v1/models` - List available VLM models
-
-## Future Enhancements
-
-### Short-term Roadmap
-- [ ] Multi-user authentication and role-based access control (RBAC)
-- [ ] Enhanced PDF support for scanned documents
-- [ ] Batch invoice processing
-- [ ] Export functionality (CSV, Excel, PDF)
-- [ ] Email notification system
-
-### Medium-term Goals
-- [ ] Advanced analytics dashboard with interactive charts
-- [ ] Invoice approval workflow
-- [ ] Custom field extraction rules
-- [ ] Fine-tuned OCR models for Arabic invoices
-- [ ] Mobile application (iOS/Android)
-
-### Long-term Vision
-- [ ] Cloud deployment templates (AWS, GCP, Azure)
-- [ ] Multi-language support expansion (French, Spanish, etc.)
-- [ ] Integration with accounting software (QuickBooks, Xero)
-- [ ] Automated vendor matching and duplicate detection
-- [ ] Machine learning-based anomaly detection
-- [ ] Blockchain-based invoice verification
-
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Please ensure your code follows the project's coding standards and includes appropriate tests.
+Please ensure your code follows PEP 8 style guidelines and includes appropriate tests.
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 👨‍💻 Author
+
+**Your Name**
+- GitHub: [@yourusername](https://github.com/yourusername)
+- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+
+## 🙏 Acknowledgments
+
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework for building APIs
+- [Streamlit](https://streamlit.io/) - The fastest way to build data apps
+- [Supabase](https://supabase.com/) - Open source Firebase alternative
+- [Qwen](https://github.com/QwenLM/Qwen) - Alibaba Cloud's Vision-Language Model
+- [SQLAlchemy](https://www.sqlalchemy.org/) - Python SQL toolkit and ORM
+
 ---
 
-## Acknowledgments
+⭐ If you found this project helpful, please give it a star!
 
-- VLM models: Qwen, Florence, SmolVLM, and Dallah teams
-- FastAPI and SQLAlchemy communities
-- Next.js and TailwindCSS projects
-
-
+📧 For questions or support, please open an issue or contact me directly.
