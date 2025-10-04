@@ -123,8 +123,8 @@ flowchart TD
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/capstone-project-invoice-mangement-system
-   cd smart-invoice-analyzer
+   git clone https://github.com/AI-AugToOct/capstone-project-invoice-mangement-system.git
+   cd capstone-project-invoice-mangement-system
    ```
 
 2. **Install dependencies**
