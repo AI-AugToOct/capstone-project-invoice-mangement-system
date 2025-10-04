@@ -9,6 +9,9 @@ from backend.schemas.invoice_schema import InvoiceCreate
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
 logger = logging.getLogger(__name__)
 
+# ------------------------------------------------------------
+# ✅ POST /invoices → Create new invoice
+# ------------------------------------------------------------
 @router.post("/")
 def create_invoice(invoice_data: InvoiceCreate, db: Session = Depends(get_db)):
     try:
@@ -39,14 +42,33 @@ def create_invoice(invoice_data: InvoiceCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(invoice)
         return {"status": "success", "data": invoice.to_dict()}
+
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating invoice: {str(e)}")
 
+# ------------------------------------------------------------
+# ✅ GET /invoices → Summary
+# ------------------------------------------------------------
 @router.get("/")
 def get_invoices(db: Session = Depends(get_db)):
     try:
         invoices = db.query(Invoice).all()
-        return {"status": "success", "count": len(invoices), "data": [inv.to_dict() for inv in invoices]}
+        return {
+            "status": "success",
+            "count": len(invoices),
+            "data": [inv.to_dict() for inv in invoices]
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error retrieving invoices.")
+        raise HTTPException(status_code=500, detail=f"Error retrieving invoices: {str(e)}")
+
+# ------------------------------------------------------------
+# ✅ GET /invoices/all → Return only list (for frontend dashboard)
+# ------------------------------------------------------------
+@router.get("/all")
+def get_all_invoices(db: Session = Depends(get_db)):
+    try:
+        invoices = db.query(Invoice).all()
+        return [inv.to_dict() for inv in invoices]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving invoices: {str(e)}")

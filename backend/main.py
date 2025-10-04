@@ -2,7 +2,7 @@
 import logging
 from fastapi import FastAPI
 from backend.database import Base, engine
-from backend.routers import vlm, upload, chat
+from backend.routers import vlm, upload, chat, dashboard, invoices  # ✅ أضفنا invoices هنا
 
 # --------------------------
 # Logging setup
@@ -25,6 +25,8 @@ app = FastAPI(
 app.include_router(upload.router)
 app.include_router(vlm.router)
 app.include_router(chat.router)
+app.include_router(dashboard.router)
+app.include_router(invoices.router)  # ✅ الآن المسار موجود
 
 # --------------------------
 # Startup event

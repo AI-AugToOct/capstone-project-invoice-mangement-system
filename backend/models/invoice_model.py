@@ -23,6 +23,7 @@ class Invoice(Base):
     amount_paid = Column(String)
     ticket_number = Column(String)
     category = Column(String)
+    ai_insight = Column(String)  # 🧠 NEW: for AI-generated insight text
     created_at = Column(DateTime, default=func.now())
 
     def to_dict(self):
