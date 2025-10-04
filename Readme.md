@@ -166,13 +166,12 @@ flowchart TD
 ---
 
 ## 🔮 Future Enhancements
+- Invoice validation  
+- Integration with a stronger embedding model  
+- Evaluation and selection of a better VLM model  
+- Improved UI/UX design  
+- Enhanced ability to handle complex invoice cases  
 
-- [ ] Support for PDF invoices
-- [ ] Multi-language invoice support
-- [ ] Batch upload functionality
-- [ ] Export to CSV/Excel
-- [ ] Invoice validation and anomaly detection
-- [ ] Integration with accounting software
 
 ---
 
