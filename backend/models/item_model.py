@@ -5,7 +5,8 @@ class Item(Base):
     __tablename__ = "items"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    qty = Column(Integer)
-    price = Column(Float)
     invoice_id = Column(Integer, ForeignKey("invoices.id"))
+    description = Column(String)
+    quantity = Column(Integer)
+    unit_price = Column(Float)
+    total = Column(Float)
