@@ -1,225 +1,189 @@
-# 🧾 Invoice Management & Analysis
+# 📑 invoice mangement system
 
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)  
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green?logo=fastapi)  
+![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-red?logo=streamlit)  
+![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%7C%20Storage-3FCF8E?logo=supabase)  
+![HuggingFace](https://img.shields.io/badge/HuggingFace-🤗-yellow)
 
-## 📋 Overview
+---
 
-Invoice Management & Analysis is a comprehensive capstone project that leverages AI-powered OCR to streamline invoice processing. The system uses the Qwen 32B Vision-Language Model to automatically extract metadata and line items from invoices in both Arabic and English, providing businesses with an efficient way to digitize and manage their financial documents.
+## 🚀 Project Overview
 
-## ✨ Features
+The **Smart Invoice Analyzer** is a capstone project that combines **FastAPI**, **Streamlit**, **Supabase**, and **state-of-the-art AI models** to analyze invoices automatically.
 
-- **Multi-format Upload**: Support for JPG, PNG, and PDF invoice formats through an intuitive Streamlit interface
-- **Bilingual OCR**: Advanced data extraction powered by Qwen 32B VLM for Arabic and English invoices
-- **Smart Extraction**: Automatic detection of invoice metadata (date, vendor, total) and line items (description, quantity, price)
-- **Human-in-the-Loop**: Review and edit extracted data before committing to database
-- **Persistent Storage**: Secure storage in PostgreSQL via Supabase cloud infrastructure
-- **Interactive Dashboard**: View, search, and manage all saved invoices in real-time
-- **RESTful API**: Comprehensive API with auto-generated Swagger documentation
-- **Cloud-Ready**: Deployed on Streamlit Cloud for easy access and scalability
+### Key Capabilities:
+- Automatic extraction of structured invoice data from images
+- Secure storage of invoices in Supabase (database + bucket)
+- **Semantic search (RAG)** for invoices using embeddings
+- A conversational **Chat** interface to ask questions about invoices
 
-## 🏗️ Architecture
+---
+
+## ⚙️ Features
+
+- 📤 **Upload** invoice images (JPG/PNG)
+- 🧾 **Extract** structured JSON with all key fields (Invoice Number, Date, Vendor, Items, Totals, Discounts, etc)
+- 🗄️ **Store** invoice data in **Postgres** and invoice images in **Supabase Storage**
+- 🔍 **Generate** embeddings with `all-MiniLM-L6-v2` and store in `pgvector`
+- 💬 **Ask** natural language questions about invoices with a **Chat page** powered by RAG
+- 🖥️ **Frontend** built with **Streamlit** for easy use
+
+---
+
+## 🧠 Models Used
+
+### ✅ Final Vision-Language Model (VLM)
+- **`Qwen/Qwen2.5-VL-7B-Instruct`**  
+  Used to analyze invoice images and return structured JSON.
+
+### 🔬 Baseline VLMs Tested
+- `Qwen/Qwen2-VL-7B-Instruct`
+- `Qwen/Qwen2.5-VL-32B-Instruct`
+- `Kosmos-2 (Microsoft)`
+- `SmolVLM-2B-Instruct`
+
+### 🗂️ Embedding Model
+- **`sentence-transformers/all-MiniLM-L6-v2`** (384 dimensions)  
+  Used to generate invoice embeddings for semantic search in `invoice_embeddings`.
+
+### 💬 LLM for Chat
+- **`meta-llama/Meta-Llama-3-8B-Instruct:novita`**  
+  Used in the **Chat endpoint** to generate natural answers about invoices.
+
+---
+
+## 🔄 Workflow
 
 ```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        A[Streamlit UI]
-    end
-    
-    subgraph "Backend Layer"
-        B[FastAPI Server]
-        C[SQLAlchemy ORM]
-    end
-    
-    subgraph "AI/ML Layer"
-        D[Qwen 32B VLM]
-    end
-    
-    subgraph "Data Layer"
-        E[(PostgreSQL on Supabase)]
-    end
-    
-    A -->|HTTP Requests| B
-    B -->|Invoice Processing| D
-    B -->|ORM Queries| C
-    C -->|SQL Operations| E
-    D -->|Extracted Data| B
-    B -->|JSON Response| A
-    
-    style A fill:#ff4b4b
-    style B fill:#009688
-    style D fill:#8b5cf6
-    style E fill:#3ecf8e
+flowchart TD
+    A[User Uploads Invoice] --> B[Supabase Storage]
+    B --> C[Backend FastAPI - upload]
+    C --> D[VLM Qwen2.5-VL-7B-Instruct]
+    D --> E[Structured JSON Extracted]
+    E --> F[Supabase Postgres - invoices & items]
+    F --> G[Generate Embedding all-MiniLM-L6-v2]
+    G --> H[invoice_embeddings Table]
+    Q[User Asks Question] --> R[Embed Question]
+    R --> S[Vector Search with pgvector]
+    S --> T[Retrieve Top-k Invoices]
+    T --> U[Meta-Llama-3-8B-Instruct]
+    U --> V[Answer + Related Invoices]
 ```
 
-## 🛠️ Tech Stack
+---
 
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | FastAPI, SQLAlchemy, Uvicorn |
-| **Frontend** | Streamlit |
-| **Database** | PostgreSQL (Supabase) |
-| **AI/ML** | Qwen 32B Vision-Language Model |
-| **Deployment** | Streamlit Cloud, Supabase Cloud |
-| **Language** | Python 3.9+ |
+## 📁 Project Structure
 
-## 🗄️ Database Schema
-
-```sql
--- Invoices Table
-CREATE TABLE invoices (
-    id SERIAL PRIMARY KEY,
-    invoice_number VARCHAR(100) UNIQUE NOT NULL,
-    vendor_name VARCHAR(255) NOT NULL,
-    invoice_date DATE NOT NULL,
-    total_amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(10) DEFAULT 'SAR',
-    file_path VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Items Table
-CREATE TABLE items (
-    id SERIAL PRIMARY KEY,
-    invoice_id INTEGER REFERENCES invoices(id) ON DELETE CASCADE,
-    description TEXT NOT NULL,
-    quantity DECIMAL(10, 2) NOT NULL,
-    unit_price DECIMAL(10, 2) NOT NULL,
-    line_total DECIMAL(10, 2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Index for faster queries
-CREATE INDEX idx_invoice_number ON invoices(invoice_number);
-CREATE INDEX idx_invoice_date ON invoices(invoice_date);
-CREATE INDEX idx_invoice_id_items ON items(invoice_id);
+```
+.
+├── backend/
+│   ├── main.py                 # FastAPI entrypoint
+│   ├── database.py             # DB connection + session
+│   ├── utils.py                # Embedding generator
+│   ├── routers/                # API endpoints
+│   │   ├── upload.py
+│   │   ├── vlm.py
+│   │   ├── chat.py
+│   │   ├── invoices.py
+│   │   └── items.py
+│   ├── models/                 # SQLAlchemy models
+│   │   ├── invoice_model.py
+│   │   ├── item_model.py
+│   │   └── embedding_model.py
+│   └── schemas/                # Pydantic schemas
+│       ├── invoice_schema.py
+│       └── item_schema.py
+├── frontend/
+│   ├── app.py                  # Main Streamlit UI
+│   └── pages/
+│       ├── Chat.py
+│       └── Uploaded_Invoices.py
+├── models/
+│   ├── final_model.py
+│   ├── qwen_baseline.ipynb
+│   ├── florence_baseline.ipynb
+│   ├── kosmos_baseline.ipynb
+│   └── smolvlm_baseline.ipynb
+├── .env
+├── requirements.txt
+└── README.md
 ```
 
-## 🚀 Setup Instructions
+---
+
+## 🛠️ Installation
 
 ### Prerequisites
+- Python 3.12+
+- Supabase account
+- API keys for model inference (if applicable)
 
-- Python 3.9 or higher
-- PostgreSQL database (Supabase account)
-- Git
-
-### Local Development Setup
+### Steps
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/invoice-management.git
-   cd invoice-management
+   git clone https://github.com/capstone-project-invoice-mangement-system
+   cd smart-invoice-analyzer
    ```
 
-2. **Create virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
+2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure environment variables**
+3. **Set up environment variables**
    
    Create a `.env` file in the root directory:
    ```env
-   DATABASE_URL=postgresql://user:password@host:port/database
-   SUPABASE_URL=your_supabase_project_url
-   SUPABASE_KEY=your_supabase_anon_key
-   QWEN_API_KEY=your_qwen_api_key
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_KEY=your_supabase_key
+   DATABASE_URL=your_postgres_connection_string
+   # Add any model API keys here
    ```
 
-5. **Initialize the database**
+4. **Start the backend**
    ```bash
-   python -m backend.database.init_db
+   cd backend
+   python -m uvicorn backend.main:app --reload --port 8000
    ```
 
-6. **Run the backend server**
+5. **Start the frontend** (in a new terminal)
    ```bash
-   uvicorn backend.main:app --reload
-   ```
-   The API will be available at `http://localhost:8000`
-   
-   Swagger docs: `http://localhost:8000/docs`
-
-7. **Run the frontend (in a new terminal)**
-   ```bash
-   streamlit run app.py
-   ```
-   The app will open at `http://localhost:8501`
-
-### 📦 Project Structure
-
-```
-invoice-management/
-├── backend/
-│   ├── main.py                 # FastAPI application
-│   ├── models.py               # SQLAlchemy models
-│   ├── schemas.py              # Pydantic schemas
-│   ├── database/
-│   │   ├── connection.py       # Database connection
-│   │   └── init_db.py          # Database initialization
-│   ├── services/
-│   │   ├── ocr_service.py      # Qwen VLM integration
-│   │   └── invoice_service.py  # Business logic
-│   └── routers/
-│       └── invoices.py         # API endpoints
-├── app.py                      # Streamlit frontend
-├── requirements.txt
-├── .env
-├── .gitignore
-└── README.md
-```
-
-### 🌐 Deployment on Streamlit Cloud
-
-1. **Push your code to GitHub**
-   ```bash
-   git add .
-   git commit -m "Initial commit"
-   git push origin main
+   cd frontend
+   python -m streamlit run frontend/app.py
    ```
 
-2. **Deploy to Streamlit Cloud**
-   - Go to [share.streamlit.io](https://share.streamlit.io)
-   - Click "New app"
-   - Select your repository, branch, and `app.py`
-   - Add your environment variables in the "Advanced settings"
-   - Click "Deploy"
+---
 
-3. **Backend Deployment**
-   
-   For the FastAPI backend, consider deploying to:
-   - **Railway**: Easy deployment with GitHub integration
-   - **Render**: Free tier available with automatic deployments
-   - **Heroku**: Classic platform with straightforward setup
-   
-   Update your Streamlit app with the deployed backend URL.
+## 🎯 Usage
 
-## 📊 Example Workflow
+1. **Upload Invoice**: Navigate to the main page and upload an invoice image (JPG/PNG)
+2. **View Extraction**: The system automatically extracts structured data from the invoice
+3. **Browse Invoices**: Check the "Uploaded Invoices" page to see all stored invoices
+4. **Ask Questions**: Use the "Chat" page to ask natural language questions about your invoices
 
-1. **Upload Invoice**: User uploads an invoice image or PDF through the Streamlit interface
-2. **AI Extraction**: Qwen 32B VLM processes the document and extracts:
-   - Invoice number, date, vendor name, total amount
-   - Line items with descriptions, quantities, and prices
-3. **Review & Edit**: User reviews the extracted data in an editable form
-4. **Confirm & Save**: User confirms accuracy and saves to PostgreSQL database
-5. **View Dashboard**: Access all invoices through the interactive dashboard with search and filter capabilities
+---
 
+## 🔮 Future Enhancements
 
+- [ ] Support for PDF invoices
+- [ ] Multi-language invoice support
+- [ ] Batch upload functionality
+- [ ] Export to CSV/Excel
+- [ ] Invoice validation and anomaly detection
+- [ ] Integration with accounting software
 
-
+---
 
 
 ---
 
-⭐ If you found this project helpful, please give it a star!
+## 👥 Contributors
 
-📧 For questions or support, please open an issue or contact me directly.
+- **Maryam**  
+- **Lames**  
+- **Ruwaa**  
+- **Saif**
+
+
