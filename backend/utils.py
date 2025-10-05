@@ -3,10 +3,8 @@ import json
 from sentence_transformers import SentenceTransformer
 from backend.models.embedding_model import InvoiceEmbedding
 
-
 # ✅ Load embedding model once
 model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-
 
 def generate_embedding(invoice_id: int, invoice_data, db):
     """
@@ -31,16 +29,13 @@ def generate_embedding(invoice_id: int, invoice_data, db):
                 text_parts.append(f"{key}: {value}")
         full_text = " | ".join(text_parts)
 
-    # 🧾 If it's already a string, just use it directly
     elif isinstance(invoice_data, str):
         full_text = invoice_data
-
     else:
-        # Just make sure we can still embed it
         full_text = json.dumps(invoice_data, ensure_ascii=False)
 
-    # 🔄 Generate vector embedding
-    embedding = model.encode(full_text).tolist()
+    # 🔄 Generate normalized vector embedding
+    embedding = model.encode(full_text, normalize_embeddings=True).tolist()
 
     # 💾 Store in invoice_embeddings table
     emb = InvoiceEmbedding(invoice_id=invoice_id, embedding=embedding)

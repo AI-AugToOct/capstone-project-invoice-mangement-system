@@ -1,5 +1,4 @@
 # backend/routers/chat.py
-
 import os
 import logging
 from fastapi import APIRouter, HTTPException, Depends
@@ -7,51 +6,48 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
+from sentence_transformers import SentenceTransformer
 from sqlalchemy import text
 from openai import OpenAI
-
 from backend.database import get_db
 
-# --------------------------
-# Setup
-# --------------------------
+# ================================================================
+# ⚙️ Setup
+# ================================================================
 load_dotenv()
 router = APIRouter(prefix="/chat", tags=["Chat"])
 logger = logging.getLogger("backend.chat")
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-# HuggingFace Inference Client
+# Clients
 hf_client = InferenceClient(api_key=HF_TOKEN)
-
-# LLM Client (for RAG + SQL generation)
 llm_client = OpenAI(
     base_url="https://router.huggingface.co/v1",
     api_key=HF_TOKEN,
 )
 
-# --------------------------
-# Request Schema
-# --------------------------
+# Local embedding model (fallback)
+local_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+
+# ================================================================
+# 🧠 Helper Classes & Functions
+# ================================================================
 class ChatRequest(BaseModel):
     question: str
     top_k: int = 3
 
-# --------------------------
-# Helpers
-# --------------------------
+
 def is_aggregation_question(question: str) -> bool:
-    """
-    Detects if a question looks like an aggregation (sum, total, count...).
-    """
+    """Detects if the question involves aggregation (sum, count, etc.)"""
     keywords = ["sum", "total", "average", "count", "how many", "كم", "مجموع", "إجمالي"]
     q_lower = question.lower()
     return any(k in q_lower for k in keywords)
 
+
 def fix_sql_casts(sql_query: str) -> str:
-    """
-    Ensure numeric fields are cast to FLOAT to avoid 'sum(character varying)' errors.
-    """
+    """Casts numeric columns to FLOAT for math operations"""
     numeric_fields = [
         "subtotal", "tax", "total_amount", "grand_total",
         "discounts", "amount_paid"
@@ -60,19 +56,17 @@ def fix_sql_casts(sql_query: str) -> str:
         sql_query = sql_query.replace(col, f"CAST({col} AS FLOAT)")
     return sql_query
 
-# --------------------------
-# Endpoint
-# --------------------------
+
+# ================================================================
+# 💬 Endpoint: /chat/ask
+# ================================================================
 @router.post("/ask")
 async def ask_chat(request: ChatRequest, db: Session = Depends(get_db)):
     try:
-        # ---------------------------------------------------
-        # 1) Aggregation mode (SQL generation)
-        # ---------------------------------------------------
+        # 🧮 Mode 1 — Aggregation / SQL
         if is_aggregation_question(request.question):
             logger.info("🧮 Detected aggregation question, switching to SQL mode")
 
-            # Ask LLM to generate SQL query
             completion = llm_client.chat.completions.create(
                 model="meta-llama/Meta-Llama-3-8B-Instruct:novita",
                 messages=[
@@ -98,7 +92,13 @@ async def ask_chat(request: ChatRequest, db: Session = Depends(get_db)):
 
             try:
                 results = db.execute(text(sql_query)).fetchall()
-                return {"answer": f"Here are the results:\n{results}"}
+                if results and len(results) == 1 and len(results[0]) == 1:
+                    val = results[0][0]
+                    return {"answer": f"The result is **{val}**."}
+                elif not results:
+                    return {"answer": "No data found for your query."}
+                else:
+                    return {"answer": f"Here are the results:\n{results}"}
             except Exception as sql_err:
                 logger.error(f"❌ SQL execution failed: {sql_err}")
                 return {
@@ -106,16 +106,21 @@ async def ask_chat(request: ChatRequest, db: Session = Depends(get_db)):
                     "error": str(sql_err),
                 }
 
-        # ---------------------------------------------------
-        # 2) Default RAG mode (your existing flow)
-        # ---------------------------------------------------
-        emb = hf_client.feature_extraction(
-            [request.question],
-            model="sentence-transformers/all-MiniLM-L6-v2",
-        )
+        # 🔍 Mode 2 — Semantic / RAG
+        try:
+            response = hf_client.post(
+                path="https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2",
+                json={"inputs": [request.question]},
+            )
+            emb = response.json()
+            vector = [float(x) for x in emb[0]]
+            logger.info("✅ Got embedding from Hugging Face API")
 
-        vector = [float(x) for x in emb[0]]
+        except Exception as api_err:
+            logger.warning(f"⚠️ HF API failed, using local embedding: {api_err}")
+            vector = local_model.encode([request.question])[0].tolist()
 
+        # 🔎 Search similar invoices
         query = text("""
             SELECT i.id, i.vendor, i.subtotal, i.total_amount, i.invoice_date,
                    e.embedding <-> CAST(:vec AS vector) AS distance
@@ -124,7 +129,6 @@ async def ask_chat(request: ChatRequest, db: Session = Depends(get_db)):
             ORDER BY distance ASC
             LIMIT :top_k;
         """)
-
         results = db.execute(query, {"vec": vector, "top_k": request.top_k}).fetchall()
 
         if not results:
@@ -139,6 +143,7 @@ async def ask_chat(request: ChatRequest, db: Session = Depends(get_db)):
 
         context_text = "\n".join(context_lines)
 
+        # 💬 Generate final natural language answer
         completion = llm_client.chat.completions.create(
             model="meta-llama/Meta-Llama-3-8B-Instruct:novita",
             messages=[

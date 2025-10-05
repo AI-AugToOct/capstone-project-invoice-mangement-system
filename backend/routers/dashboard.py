@@ -1,7 +1,7 @@
 # backend/routers/dashboard.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, cast, Float
 from backend.database import get_db
 from backend.models.invoice_model import Invoice
 
@@ -12,10 +12,7 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
     """Return general invoice statistics for dashboard"""
     try:
         total_invoices = db.query(func.count(Invoice.id)).scalar() or 0
-        total_spent = (
-            db.query(func.sum(func.coalesce(func.cast(Invoice.total_amount, db.bind.dialect.type_descriptor(func.FLOAT())), 0)))
-            .scalar() or 0
-        )
+        total_spent = db.query(func.sum(cast(Invoice.total_amount, Float))).scalar() or 0
 
         # Top vendors by frequency
         top_vendors_query = (

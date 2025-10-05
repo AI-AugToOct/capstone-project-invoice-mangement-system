@@ -1,58 +1,39 @@
-# frontend/pages/Dashboard.py
 import streamlit as st
 import requests
 import pandas as pd
 import plotly.express as px
+import os
+from dotenv import load_dotenv
 
-# ------------------------------------------------------
-# ⚙️ Page Config
-# ------------------------------------------------------
+load_dotenv()
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+
 st.set_page_config(page_title="📊 Invoice Dashboard", layout="wide")
-
 st.title("📊 Invoice Dashboard")
 st.caption("Real-time analytics of your invoices with insights powered by AI ⚙️")
 
-BACKEND_URL = "http://127.0.0.1:8000"
-
-# ------------------------------------------------------
-# 📡 Fetch Data from Backend
-# ------------------------------------------------------
 try:
     stats_response = requests.get(f"{BACKEND_URL}/dashboard/stats", timeout=5)
     invoices_response = requests.get(f"{BACKEND_URL}/invoices/all", timeout=5)
 
-    if stats_response.status_code == 200:
-        stats = stats_response.json()
-    else:
-        stats = {"total_invoices": 0, "total_spent": 0.0, "top_vendors": []}
-
-    if invoices_response.status_code == 200:
-        invoices = invoices_response.json()
-    else:
-        invoices = []
+    stats = stats_response.json() if stats_response.status_code == 200 else {"total_invoices": 0, "total_spent": 0.0, "top_vendors": []}
+    invoices = invoices_response.json() if invoices_response.status_code == 200 else []
 except Exception as e:
     st.error(f"❌ Failed to connect to backend: {e}")
     stats = {"total_invoices": 0, "total_spent": 0.0, "top_vendors": []}
     invoices = []
 
-# ------------------------------------------------------
-# 🧮 Data Processing
-# ------------------------------------------------------
 df = pd.DataFrame(invoices if isinstance(invoices, list) else [invoices])
 if not df.empty:
-    # Ensure required columns exist
     for col in ["invoice_date", "total_amount", "vendor", "category", "payment_method"]:
         if col not in df.columns:
             df[col] = None
-
     df["invoice_date"] = pd.to_datetime(df["invoice_date"], errors="coerce")
     df["total_amount"] = pd.to_numeric(df["total_amount"], errors="coerce").fillna(0)
 else:
     df = pd.DataFrame(columns=["invoice_date", "vendor", "category", "total_amount", "payment_method"])
 
-# ------------------------------------------------------
-# 💡 KPI Section
-# ------------------------------------------------------
+# KPIs
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
     st.metric("🧾 Total Invoices", stats.get("total_invoices", 0))
@@ -68,39 +49,31 @@ with col4:
     top_vendor_name = top_vendor[0].get("vendor", "N/A") if top_vendor else "N/A"
     st.metric("🏪 Top Vendor", top_vendor_name)
 with col5:
-    st.metric("🗓️ Current Month Spend", f"{df['total_amount'].sum():,.2f} SAR", "+0.0% vs last month")
+    st.metric("🗓️ Current Month Spend", f"{df['total_amount'].sum():,.2f} SAR")
 
 st.markdown("---")
 
-# ------------------------------------------------------
-# 📊 Charts Section
-# ------------------------------------------------------
+# Charts
 if not df.empty:
     colA, colB = st.columns(2)
 
-    # 🏪 Top Vendors Chart
+    # Top Vendors
     with colA:
         top_vendors = stats.get("top_vendors", [])
         if top_vendors:
             df_vendors = pd.DataFrame(top_vendors)
             if not df_vendors.empty and "vendor" in df_vendors.columns:
                 fig = px.bar(
-                    df_vendors,
-                    x=df_vendors.index,
-                    y="count",
-                    text_auto=True,
-                    color="count",
-                    color_continuous_scale="Teal",
-                    title="🏪 Top Vendors by Frequency"
+                    df_vendors, x=df_vendors["vendor"], y="count", text_auto=True,
+                    color="count", color_continuous_scale="Teal", title="🏪 Top Vendors by Frequency"
                 )
-                fig.update_layout(xaxis_title="Vendor", yaxis_title="Count", height=350)
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No vendor data available yet.")
+                st.info("No vendor data available.")
         else:
-            st.info("No vendor data available yet.")
+            st.info("No vendor data available.")
 
-    # 📈 Monthly Trend
+    # Monthly Trend
     with colB:
         if "invoice_date" in df.columns:
             monthly = df.groupby(df["invoice_date"].dt.to_period("M"))["total_amount"].sum().reset_index()
@@ -112,7 +85,7 @@ if not df.empty:
 
     st.markdown("---")
 
-    # 🎯 Spending by Category
+    # Category Spending
     if "category" in df.columns and df["category"].notna().any():
         category_spending = df.groupby("category")["total_amount"].sum().reset_index()
         fig3 = px.pie(category_spending, values="total_amount", names="category", title="🎯 Spending by Category")
@@ -120,7 +93,7 @@ if not df.empty:
     else:
         st.info("No category data available.")
 
-    # 💳 Payment Methods Breakdown
+    # Payment Methods
     if "payment_method" in df.columns and df["payment_method"].notna().any():
         payment_methods = df["payment_method"].value_counts().reset_index()
         payment_methods.columns = ["Payment Method", "Count"]
@@ -129,10 +102,10 @@ if not df.empty:
     else:
         st.info("No payment method data available.")
 
-    # 🗂 Recent Invoices
+    # Recent Invoices
     st.markdown("### 📋 Recent Invoices")
     display_cols = [c for c in ["invoice_number", "vendor", "category", "total_amount", "payment_method", "invoice_date"] if c in df.columns]
     if display_cols:
         st.dataframe(df[display_cols].tail(10), hide_index=True, use_container_width=True)
-else:
-    st.warning("⚠️ No invoice data available yet.")
+    else:
+        st.warning("⚠️ No invoice data available yet.")
