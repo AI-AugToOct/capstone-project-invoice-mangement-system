@@ -1,110 +1,86 @@
-# 📑 invoice mangement system
-
-![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)  
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green?logo=fastapi)  
-![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-red?logo=streamlit)  
-![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%7C%20Storage-3FCF8E?logo=supabase)  
+# 📑 Smart Invoice Analyzer — AI-Powered Invoice Management System  
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green?logo=fastapi)
+![Streamlit](https://img.shields.io/badge/Streamlit-Frontend-red?logo=streamlit)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%7C%20Storage-3FCF8E?logo=supabase)
 ![HuggingFace](https://img.shields.io/badge/HuggingFace-🤗-yellow)
+![FriendliAI](https://img.shields.io/badge/FriendliAI-VLM-blueviolet)
 
 ---
 
-## 🚀 Project Overview
-
-The **Smart Invoice Analyzer** is a capstone project that combines **FastAPI**, **Streamlit**, **Supabase**, and **state-of-the-art AI models** to analyze invoices automatically.
-
-### Key Capabilities:
-- Automatic extraction of structured invoice data from images
-- Secure storage of invoices in Supabase (database + bucket)
-- **Semantic search (RAG)** for invoices using embeddings
-- A conversational **Chat** interface to ask questions about invoices
+## 🚀 Overview
+**Smart Invoice Analyzer** is a full-stack AI system that reads invoices (Arabic and English), extracts structured data, classifies the business type, and generates intelligent insights about spending.  
+It integrates **FastAPI**, **Streamlit**, **Supabase**, and cutting-edge AI models (**VLM + LLM + Embeddings**).
 
 ---
 
-## ⚙️ Features
-
-- 📤 **Upload** invoice images (JPG/PNG)
-- 🧾 **Extract** structured JSON with all key fields (Invoice Number, Date, Vendor, Items, Totals, Discounts, etc)
-- 🗄️ **Store** invoice data in **Postgres** and invoice images in **Supabase Storage**
-- 🔍 **Generate** embeddings with `all-MiniLM-L6-v2` and store in `pgvector`
-- 💬 **Ask** natural language questions about invoices with a **Chat page** powered by RAG
-- 🖥️ **Frontend** built with **Streamlit** for easy use
-
----
-
-## 🧠 Models Used
-
-### ✅ Final Vision-Language Model (VLM)
-- **`Qwen/Qwen2.5-VL-7B-Instruct`**  
-  Used to analyze invoice images and return structured JSON.
-
-### 🔬 Baseline VLMs Tested
-- `Qwen/Qwen2-VL-7B-Instruct`
-- `Qwen/Qwen2.5-VL-32B-Instruct`
-- `Kosmos-2 (Microsoft)`
-- `SmolVLM-2B-Instruct`
-
-### 🗂️ Embedding Model
-- **`sentence-transformers/all-MiniLM-L6-v2`** (384 dimensions)  
-  Used to generate invoice embeddings for semantic search in `invoice_embeddings`.
-
-### 💬 LLM for Chat
-- **`meta-llama/Meta-Llama-3-8B-Instruct:novita`**  
-  Used in the **Chat endpoint** to generate natural answers about invoices.
+## ⚙️ Key Features
+| Feature | Description |
+|----------|-------------|
+| 🧾 **Invoice Extraction** | Reads Arabic and English invoices and returns structured JSON |
+| 🧠 **AI Insights** | Generates multi-sentence insights in English about user spending |
+| 🗂️ **Category Detection** | Classifies invoices by business type (Cafe, Restaurant, Pharmacy, etc.) |
+| ☁️ **Cloud Storage** | Saves invoice data in Supabase (Postgres + Buckets) |
+| 🔍 **Semantic Search (RAG)** | Uses pgvector embeddings for retrieval and similarity |
+| 💬 **Chat Interface** | Natural-language Q&A about your invoices using Llama-3 |
+| 📊 **Dashboard** | Interactive analytics and visualizations with Plotly |
+| 🌐 **Multilingual Support** | Handles invoices written in Arabic, English, or both |
 
 ---
 
-## 🔄 Workflow
+## 🧠 AI Models
+| Task | Model | Description |
+|------|--------|-------------|
+| **Vision-Language Extraction** | `Qwen/Qwen2.5-VL-32B-Instruct` (via FriendliAI) | Reads invoice images in Arabic and English |
+| **Embeddings** | `sentence-transformers/all-MiniLM-L6-v2` | Generates 384-dimensional embeddings for pgvector |
+| **Chat / Reasoning** | `meta-llama/Meta-Llama-3-8B-Instruct:novita` | Answers invoice-related queries |
+| **Database / Storage** | Supabase | PostgreSQL + public file storage bucket |
 
+---
+
+## 🔄 System Workflow
 ```mermaid
 flowchart TD
-    A[User Uploads Invoice] --> B[Supabase Storage]
-    B --> C[Backend FastAPI - upload]
-    C --> D[VLM Qwen2.5-VL-7B-Instruct]
-    D --> E[Structured JSON Extracted]
-    E --> F[Supabase Postgres - invoices & items]
-    F --> G[Generate Embedding all-MiniLM-L6-v2]
-    G --> H[invoice_embeddings Table]
-    Q[User Asks Question] --> R[Embed Question]
-    R --> S[Vector Search with pgvector]
-    S --> T[Retrieve Top-k Invoices]
-    T --> U[Meta-Llama-3-8B-Instruct]
-    U --> V[Answer + Related Invoices]
+    A[📤 Upload Invoice] --> B[☁️ Supabase Storage]
+    B --> C[⚙️ FastAPI Backend]
+    C --> D[🧠 Qwen2.5-VL-32B FriendliAI]
+    D --> E[📋 Structured JSON Extraction]
+    E --> F[🗄️ Supabase Postgres Invoices & Items]
+    F --> G[🧩 Generate Embeddings MiniLM-L6-v2]
+    G --> H[🔍 Vector Search via pgvector]
+    H --> I[💬 Chat or SQL Query]
+    I --> J[📊 Dashboard + AI Insights]
 ```
 
 ---
 
-## 📁 Project Structure
-
+## 📂 Project Structure
 ```
 .
 ├── backend/
 │   ├── main.py                 # FastAPI entrypoint
-│   ├── database.py             # DB connection + session
+│   ├── database.py             # DB connection
 │   ├── utils.py                # Embedding generator
 │   ├── routers/                # API endpoints
 │   │   ├── upload.py
 │   │   ├── vlm.py
 │   │   ├── chat.py
+│   │   ├── dashboard.py
 │   │   ├── invoices.py
 │   │   └── items.py
-│   ├── models/                 # SQLAlchemy models
+│   ├── models/
 │   │   ├── invoice_model.py
 │   │   ├── item_model.py
 │   │   └── embedding_model.py
-│   └── schemas/                # Pydantic schemas
+│   └── schemas/
 │       ├── invoice_schema.py
 │       └── item_schema.py
 ├── frontend/
-│   ├── app.py                  # Main Streamlit UI
+│   ├── app.py                  # Streamlit main UI
 │   └── pages/
+│       ├── Dashboard.py
 │       ├── Chat.py
 │       └── Uploaded_Invoices.py
-├── models/
-│   ├── final_model.py
-│   ├── qwen_baseline.ipynb
-│   ├── florence_baseline.ipynb
-│   ├── kosmos_baseline.ipynb
-│   └── smolvlm_baseline.ipynb
 ├── .env
 ├── requirements.txt
 └── README.md
@@ -115,74 +91,62 @@ flowchart TD
 ## 🛠️ Installation
 
 ### Prerequisites
-- Python 3.12+
-- Supabase account
-- API keys for model inference (if applicable)
+* Python 3.12+
+* Supabase project with database + storage
+* FriendliAI and HuggingFace tokens
 
-### Steps
+### Setup Steps
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/AI-AugToOct/capstone-project-invoice-mangement-system.git
-   cd capstone-project-invoice-mangement-system
-   ```
+```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/AI-AugToOct/capstone-project-invoice-mangement-system.git
+cd capstone-project-invoice-mangement-system
 
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# 2️⃣ Install dependencies
+pip install -r requirements.txt
 
-3. **Set up environment variables**
-   
-   Create a `.env` file in the root directory:
-   ```env
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_KEY=your_supabase_key
-   DATABASE_URL=your_postgres_connection_string
-   # Add any model API keys here
-   ```
+# 3️⃣ Add environment variables
+echo "
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+DATABASE_URL=your_postgres_connection
+FRIENDLI_TOKEN=your_friendli_token
+HF_TOKEN=your_huggingface_token
+" > .env
 
-4. **Start the backend**
-   ```bash
-   cd backend
-   python -m uvicorn backend.main:app --reload --port 8000
-   ```
+# 4️⃣ Start backend
+uvicorn backend.main:app --reload --port 8000
 
-5. **Start the frontend** (in a new terminal)
-   ```bash
-   cd frontend
-   python -m streamlit run frontend/app.py
-   ```
+# 5️⃣ Start frontend
+streamlit run frontend/app.py
+```
 
 ---
 
-## 🎯 Usage
+## 🎯 Usage Flow
 
-1. **Upload Invoice**: Navigate to the main page and upload an invoice image (JPG/PNG)
-2. **View Extraction**: The system automatically extracts structured data from the invoice
-3. **Browse Invoices**: Check the "Uploaded Invoices" page to see all stored invoices
-4. **Ask Questions**: Use the "Chat" page to ask natural language questions about your invoices
+1. **Upload Invoice** → image saved to Supabase storage
+2. **AI Extraction** → FriendliAI VLM extracts structured JSON
+3. **Data Storage** → results stored in Supabase Postgres
+4. **Embeddings** → semantic vectors stored in invoice_embeddings
+5. **Chat Interface** → ask questions like "What's my total spending at cafes?"
+6. **Dashboard** → visualize trends, vendors, and spending categories
 
 ---
 
 ## 🔮 Future Enhancements
-- Invoice validation  
-- Integration with a stronger embedding model  
-- Evaluation and selection of a better VLM model  
-- Improved UI/UX design  
-- Enhanced ability to handle complex invoice cases  
+
+- 🧠 Improve AI precision in extraction  
+- 🎨 Enhance UI design for better user experience  
+- 💬 Improve query handling and chat   
+- 🔧 Explore fine-tuning options for the vision-language model (VLM)
 
 
 ---
 
+## 👥 Team
 
----
-
-## 👥 Contributors
-
-- **Maryam**  
-- **Lames**  
-- **Ruwaa**  
-- **Saif**
-
-
+- **Maryam**
+- **Lames**
+- **Ruwaa**
+- **Saif Alotibie**
