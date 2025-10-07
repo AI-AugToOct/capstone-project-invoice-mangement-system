@@ -292,45 +292,105 @@ npm run dev
 
 ## 🎯 Usage Flow
 
-### Step-by-Step Workflow
+### Example: Complete Workflow
 
-1. **📤 Upload Invoice**
-   - Drag-and-drop image or capture from camera
-   - Image saved to Supabase Storage
-   - Returns public URL
+Let's walk through analyzing a **Starbucks receipt**:
 
-2. **🤖 AI Extraction**
-   - VLM analyzes image (Arabic + English)
-   - Extracts: Invoice #, Date, Vendor, Items, Totals
-   - Classifies: Category & Invoice Type
-   - Generates: AI Insight in Arabic
+#### 1. **📤 Upload Invoice**
+```
+User uploads: starbucks_receipt.jpg
+→ Saved to Supabase Storage
+→ URL: https://[project].supabase.co/storage/v1/object/public/invoices/starbucks_receipt.jpg
+```
 
-3. **💾 Data Storage**
-   - Structured data → `invoices` table
-   - Line items → `items` table
-   - Results displayed in elegant cards
+#### 2. **🤖 AI Extraction (VLM Analysis)**
+```json
+{
+  "Invoice Number": "INV-2024-1234",
+  "Date": "2025-10-07",
+  "Vendor": "Starbucks",
+  "Branch": "Riyadh Tower",
+  "Phone": "0112345678",
+  "Items": [
+    {"description": "Caramel Frappuccino", "quantity": 2, "unit_price": 22.00, "total": 44.00},
+    {"description": "Croissant", "quantity": 1, "unit_price": 15.00, "total": 15.00}
+  ],
+  "Subtotal": "59.00",
+  "Tax": "8.85",
+  "Total Amount": "67.85",
+  "Payment Method": "Visa",
+  "Category": "Cafe",
+  "Invoice_Type": "فاتورة شراء",
+  "Keywords_Detected": ["Purchase", "شراء", "Receipt"],
+  "AI_Insight": "هذا الشراء من مقهى ستاربكس في برج الرياض. العميل طلب مشروبين ووجبة خفيفة بمبلغ معتدل. المشتريات المتكررة من المقاهي قد تشير إلى عادة يومية."
+}
+```
 
-4. **🔎 Embeddings**
-   - Convert invoice text to 384D vector
-   - Store in `invoice_embeddings` (pgvector)
-   - Enable semantic search
+#### 3. **💾 Data Storage**
+```sql
+-- invoices table
+INSERT INTO invoices (vendor, total_amount, category, invoice_type, ...)
+VALUES ('Starbucks', '67.85', '{"ar": "مقهى", "en": "Cafe"}', 'فاتورة شراء', ...);
 
-5. **💬 Chat Interface**
-   - Ask: "كم أنفقت على المطاعم؟" (How much did I spend on restaurants?)
-   - AI uses SQL, RAG, or Retrieval mode
-   - Returns answer + relevant invoices
+-- items table
+INSERT INTO items (invoice_id, description, quantity, unit_price, total)
+VALUES (42, 'Caramel Frappuccino', 2, 22.00, 44.00);
+```
 
-6. **📊 Dashboard**
-   - View analytics: total spending, top vendors
-   - Interactive charts: Pie, Area, Bar, Radar
-   - Filter by category, month, payment method
-   - Smart insights in Arabic
+#### 4. **🔎 Embeddings Generated**
+```python
+# Text representation:
+"Invoice Number: INV-2024-1234 | Vendor: Starbucks | Items: Caramel Frappuccino (qty: 2), Croissant (qty: 1) | Total: 67.85 | Category: Cafe"
 
-7. **📋 Manage Invoices**
-   - Browse all invoices with images
-   - Filter by category or type
-   - Download as PDF
-   - View full-screen image modal
+# Converted to 384D vector:
+[0.123, -0.456, 0.789, ..., 0.234]  # 384 dimensions
+
+# Stored in invoice_embeddings table
+```
+
+#### 5. **💬 Chat with AI**
+```
+User: "كم أنفقت على ستاربكس؟"
+
+AI Mode: SQL (detects aggregation keyword "كم")
+SQL: SELECT SUM(CAST(total_amount AS FLOAT)) FROM invoices WHERE vendor LIKE '%Starbucks%'
+Result: 245.50
+
+Response: "أنفقت 245.50 ر.س على ستاربكس"
+```
+
+```
+User: "أرسل لي فواتير ستاربكس"
+
+AI Mode: Retrieval (detects vendor name)
+Query: SELECT * FROM invoices WHERE vendor ILIKE '%Starbucks%' LIMIT 5
+
+Response: [Shows 5 invoice cards with images, dates, amounts]
+```
+
+#### 6. **📊 Dashboard View**
+```
+Total Invoices: 156
+Total Spending: 12,456.75 ر.س
+Average: 79.85 ر.س
+
+Top Vendors:
+1. Starbucks - 23 invoices (245.50 ر.س)
+2. Dunkin - 18 invoices (189.00 ر.س)
+3. Panda - 15 invoices (567.25 ر.س)
+
+Category Distribution (Pie Chart):
+- Cafes: 35% (4,359.86 ر.س)
+- Restaurants: 40% (4,982.70 ر.س)
+- Pharmacies: 15% (1,868.51 ر.س)
+- Other: 10% (1,245.68 ر.س)
+```
+
+#### 7. **📋 Invoice Management**
+- Browse all 156 invoices with thumbnail images
+- Filter: Show only "مقهى" → 54 invoices
+- Click Starbucks invoice → Full-screen image view
+- Download as PDF → `Starbucks_INV-2024-1234.pdf`
 
 ---
 
@@ -376,7 +436,7 @@ All filters update **instantly** - no page reload!
 
 ## 🔮 Future Enhancements
 
-- [ ] 🧠 Fine-tune VLM on custom invoice dataset (+5-7% accuracy)
+- [ ] 🧠 Fine-tune VLM on custom invoice dataset for better accuracy
 - [ ] 🎨 Enhanced UI with better animations and interactions
 - [ ] 💬 Conversation memory for follow-up questions
 - [ ] 🔧 Bulk invoice upload (process multiple at once)
@@ -405,122 +465,14 @@ Comprehensive documentation (47,000+ words) is available in the `/docs` folder:
 
 ---
 
-## 🎨 Screenshots
-
-<table>
-<tr>
-<td width="33%" align="center">
-<img src="screenshots/home.png" alt="Home Page" width="100%" />
-<b>🏠 Home Page</b><br/>
-<i>Modern landing with Arabic UI</i>
-</td>
-<td width="33%" align="center">
-<img src="screenshots/upload.png" alt="Upload" width="100%" />
-<b>📤 Upload & Analysis</b><br/>
-<i>AI extracts data automatically</i>
-</td>
-<td width="33%" align="center">
-<img src="screenshots/dashboard.png" alt="Dashboard" width="100%" />
-<b>📊 Dashboard</b><br/>
-<i>Interactive charts & filters</i>
-</td>
-</tr>
-<tr>
-<td width="33%" align="center">
-<img src="screenshots/invoices.png" alt="Invoices" width="100%" />
-<b>📋 Invoices List</b><br/>
-<i>Browse with images & filters</i>
-</td>
-<td width="33%" align="center">
-<img src="screenshots/chat.png" alt="Chat" width="100%" />
-<b>💬 AI Chat</b><br/>
-<i>Natural language Q&A</i>
-</td>
-<td width="33%" align="center">
-<img src="screenshots/dark-mode.png" alt="Dark Mode" width="100%" />
-<b>🌙 Dark Mode</b><br/>
-<i>Eye-friendly theme</i>
-</td>
-</tr>
-</table>
-
-*Note: Screenshots will be added in future release*
-
----
-
-## 🔐 Security & Privacy
-
-- ✅ **Environment Variables**: Sensitive keys stored in `.env` (never committed)
-- ✅ **Encrypted Connections**: HTTPS/SSL for all API calls
-- ✅ **Cloud Storage**: Images stored in your Supabase (you control access)
-- ✅ **Row Level Security**: Supabase RLS for multi-user (future)
-- ✅ **API Key Rotation**: Rotate keys if exposed
-
----
-
-## 📈 Performance Metrics
-
-| Operation | Current Performance | Target |
-|-----------|---------------------|--------|
-| **VLM Analysis** | 3-5 seconds | 2-3 seconds (with caching) |
-| **Chat Response (SQL)** | <1 second | <0.5 seconds |
-| **Chat Response (RAG)** | 3-4 seconds | 1-2 seconds (better indexing) |
-| **Dashboard Load** | <1 second (100 invoices) | <0.3 seconds (caching) |
-| **Embedding Generation** | ~100ms per invoice | ~50ms (batch processing) |
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/AmazingFeature`
-3. **Commit** your changes: `git commit -m 'Add AmazingFeature'`
-4. **Push** to the branch: `git push origin feature/AmazingFeature`
-5. **Open** a Pull Request
-
-### Coding Standards
-
-- **Backend**: PEP 8 (Python)
-- **Frontend**: ESLint + Prettier (TypeScript)
-- **Commits**: Conventional Commits format
-- **Documentation**: Update docs for new features
-
 ---
 
 ## 👥 Team
 
-<table>
-<tr>
-<td align="center">
-<img src="https://github.com/maryam.png" width="100px;" alt="Maryam"/><br />
-<sub><b>Maryam</b></sub><br />
-<i>Backend & AI Integration</i>
-</td>
-<td align="center">
-<img src="https://github.com/lames.png" width="100px;" alt="Lames"/><br />
-<sub><b>Lames</b></sub><br />
-<i>Frontend Development</i>
-</td>
-<td align="center">
-<img src="https://github.com/ruwaa.png" width="100px;" alt="Ruwaa"/><br />
-<sub><b>Ruwaa</b></sub><br />
-<i>Database & Architecture</i>
-</td>
-<td align="center">
-<img src="https://github.com/saifalotibie.png" width="100px;" alt="Saif Alotibie"/><br />
-<sub><b>Saif Alotibie</b></sub><br />
-<i>AI Models & Research</i>
-</td>
-</tr>
-</table>
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+- **Maryam**
+- **Lames**
+- **Ruwaa**
+- **Saif Alotibie**
 
 ---
 
@@ -536,24 +488,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-## 📞 Support & Contact
-
-- **📧 Email**: contact@yourdomain.com
-- **🐛 Issues**: [GitHub Issues](https://github.com/AI-AugToOct/capstone-project-invoice-mangement-system/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/AI-AugToOct/capstone-project-invoice-mangement-system/discussions)
-- **📖 Documentation**: [/docs folder](docs/)
-- **🌐 Live Demo**: Coming soon!
-
----
-
-## 🌟 Star History
-
-If you find this project helpful, please give it a ⭐!
-
-[![Star History Chart](https://api.star-history.com/svg?repos=AI-AugToOct/capstone-project-invoice-mangement-system&type=Date)](https://star-history.com/#AI-AugToOct/capstone-project-invoice-mangement-system&Date)
-
----
-
 <div align="center">
 
 ## 🎉 Project Status: Production Ready! 🚀
@@ -562,7 +496,7 @@ If you find this project helpful, please give it a ⭐!
 
 *Built with ❤️ using FastAPI, Next.js, and AI*
 
-**Cross-Platform** • **Multilingual** • **Open Source**
+**Cross-Platform** • **Multilingual** • **Production Ready**
 
 [⬆ Back to Top](#-smart-invoice-analyzer--ai-powered-invoice-management-system)
 
