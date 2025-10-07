@@ -3,14 +3,22 @@ import requests
 import pandas as pd
 import plotly.express as px
 import os
+import sys
 from dotenv import load_dotenv
+
+# Add parent directory to path to import theme
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from theme import get_light_theme_css
 
 load_dotenv()
 BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
-st.set_page_config(page_title="📊 Invoice Dashboard", layout="wide")
-st.title("📊 Invoice Dashboard")
-st.caption("Real-time analytics of your invoices with insights powered by AI ⚙️")
+st.set_page_config(page_title="📊 لوحة تحكم الفواتير", layout="wide")
+
+# Apply light theme CSS
+st.markdown(get_light_theme_css(), unsafe_allow_html=True)
+st.title("📊 لوحة تحكم الفواتير")
+st.caption("تحليلات فورية لفواتيرك مع رؤى مدعومة بالذكاء الاصطناعي ⚙️")
 
 try:
     stats_response = requests.get(f"{BACKEND_URL}/dashboard/stats", timeout=5)
@@ -19,7 +27,7 @@ try:
     stats = stats_response.json() if stats_response.status_code == 200 else {"total_invoices": 0, "total_spent": 0.0, "top_vendors": []}
     invoices = invoices_response.json() if invoices_response.status_code == 200 else []
 except Exception as e:
-    st.error(f"❌ Failed to connect to backend: {e}")
+    st.error(f"❌ فشل في الاتصال بالخادم الخلفي: {e}")
     stats = {"total_invoices": 0, "total_spent": 0.0, "top_vendors": []}
     invoices = []
 
@@ -36,20 +44,20 @@ else:
 # KPIs
 col1, col2, col3, col4, col5 = st.columns(5)
 with col1:
-    st.metric("🧾 Total Invoices", stats.get("total_invoices", 0))
+    st.metric("🧾 إجمالي الفواتير", stats.get("total_invoices", 0))
 with col2:
-    st.metric("💰 Total Spent (SAR)", f"{stats.get('total_spent', 0.0):,.2f}")
+    st.metric("💰 إجمالي المصروف (ريال)", f"{stats.get('total_spent', 0.0):,.2f}")
 with col3:
     avg_per_invoice = 0
     if stats.get("total_invoices", 0) > 0:
         avg_per_invoice = stats["total_spent"] / stats["total_invoices"]
-    st.metric("📈 Average per Invoice", f"{avg_per_invoice:.2f} SAR")
+    st.metric("📈 المتوسط لكل فاتورة", f"{avg_per_invoice:.2f} ريال")
 with col4:
     top_vendor = stats.get("top_vendors", [{}])
-    top_vendor_name = top_vendor[0].get("vendor", "N/A") if top_vendor else "N/A"
-    st.metric("🏪 Top Vendor", top_vendor_name)
+    top_vendor_name = top_vendor[0].get("vendor", "غير متوفر") if top_vendor else "غير متوفر"
+    st.metric("🏪 أفضل بائع", top_vendor_name)
 with col5:
-    st.metric("🗓️ Current Month Spend", f"{df['total_amount'].sum():,.2f} SAR")
+    st.metric("🗓️ مصروف الشهر الحالي", f"{df['total_amount'].sum():,.2f} ريال")
 
 st.markdown("---")
 

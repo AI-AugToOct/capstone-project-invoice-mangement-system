@@ -1,8 +1,8 @@
 # backend/main.py
 import logging
 from fastapi import FastAPI
-from backend.database import Base, engine
-from backend.routers import vlm, upload, chat, dashboard, invoices  # ✅ أضفنا invoices هنا
+from .database import Base, engine
+from .routers import vlm, upload, chat, dashboard, invoices  # ✅ أضفنا invoices هنا
 
 # --------------------------
 # Logging setup
