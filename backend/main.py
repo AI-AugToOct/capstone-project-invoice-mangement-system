@@ -1,8 +1,9 @@
 # backend/main.py
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from backend.database import Base, engine
-from backend.routers import vlm, upload, chat, dashboard, invoices  # ✅ أضفنا invoices هنا
+from backend.routers import vlm, upload, chat, dashboard, invoices
 
 # --------------------------
 # Logging setup
@@ -17,6 +18,21 @@ app = FastAPI(
     title="📑 Smart Invoice Analyzer API",
     version="1.0.0",
     description="Backend for analyzing invoices using Supabase + HuggingFace VLM",
+)
+
+# --------------------------
+# CORS Middleware (للسماح بالاتصال من Frontend)
+# --------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8501",  # Streamlit
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --------------------------

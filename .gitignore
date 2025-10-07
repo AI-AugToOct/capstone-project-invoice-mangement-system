@@ -1,12 +1,67 @@
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Env files
+# Environment Variables (NEVER COMMIT THESE!)
 .env
+.env.local
+.env*.local
 
-# Virtual environment
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 venv/
-.envrc
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Node.js
+node_modules/
+.next/
+out/
+.npm
+.pnp/
+.pnp.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build outputs
+.turbo/
+.vercel/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Backup files
+*.bak
+*.backup
+*_backup.*

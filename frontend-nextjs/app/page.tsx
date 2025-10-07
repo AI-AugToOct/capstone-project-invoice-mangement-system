@@ -1,0 +1,380 @@
+"use client";
+
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { 
+  Upload, 
+  BarChart3, 
+  MessageSquare, 
+  FileText,
+  Sparkles,
+  Zap,
+  Clock,
+  Shield,
+  TrendingUp,
+  ArrowLeft,
+  Receipt,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function Home() {
+  const features = [
+    {
+      icon: Upload,
+      title: "رفع فوري",
+      description: "التقط صورة أو ارفع ملف فاتورتك وسيتم تحليلها خلال ثوان",
+      gradient: "from-[#8dbcc7] to-[#6fa3b0]",
+      href: "/upload",
+    },
+    {
+      icon: BarChart3,
+      title: "تحليل ذكي",
+      description: "احصل على رؤى عميقة ورسوم بيانية تفاعلية لمصروفاتك",
+      gradient: "from-[#d4a574] to-[#c89563]",
+      href: "/dashboard",
+    },
+    {
+      icon: MessageSquare,
+      title: "مساعد عربي",
+      description: "اسأل المساعد الذكي بالعربية عن أي تفاصيل في فواتيرك",
+      gradient: "from-[#8dbcc7] to-[#d4a574]",
+      href: "/chat",
+    },
+    {
+      icon: FileText,
+      title: "إدارة شاملة",
+      description: "عرض وتنظيم وتصدير جميع فواتيرك في مكان واحد",
+      gradient: "from-[#d4a574] to-[#8dbcc7]",
+      href: "/invoices",
+    },
+  ];
+
+  const benefits = [
+    { icon: Zap, text: "سرعة فائقة" },
+    { icon: Shield, text: "آمن ومشفر" },
+    { icon: Clock, text: "يوفر وقتك" },
+    { icon: TrendingUp, text: "رؤى دقيقة" },
+  ];
+
+  return (
+    <div className="relative w-full overflow-hidden">
+      
+      {/* Hero Section */}
+      <section 
+        dir="rtl"
+        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-6 md:px-16 lg:px-24 xl:px-32 py-24 overflow-hidden scroll-smooth"
+        style={{ scrollSnapAlign: 'start' }}
+      >
+        {/* Animated Gradient Background */}
+        <div className="fixed inset-0 -z-10 animate-gradient opacity-90" />
+
+        <div className="relative z-10 max-w-6xl space-y-10">
+          
+          {/* Main Heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-6"
+          >
+            <h1 className="text-7xl md:text-8xl lg:text-9xl font-black leading-tight">
+              <span className="block bg-gradient-to-l from-[#8dbcc7] via-[#a0cad4] to-[#d4a574] bg-clip-text text-transparent">
+                مُـفـــــوْتِــــر
+              </span>
+            </h1>
+            
+            <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
+              نظامك الذكي لرفع، تحليل، وإدارة جميع فواتيرك بضغطة واحدة
+            </p>
+          </motion.div>
+
+          {/* Benefits Pills */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-wrap justify-center gap-4"
+          >
+            {benefits.map((benefit, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20"
+              >
+                <benefit.icon className="w-5 h-5 text-[#8dbcc7]" />
+                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                  {benefit.text}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-5 justify-center pt-6"
+          >
+            <Link href="/upload">
+              <Button 
+                size="lg"
+                className="group gap-3 text-xl px-12 py-8 bg-gradient-to-l from-[#8dbcc7] to-[#6fa3b0] hover:from-[#7aabb8] hover:to-[#5f92a0] text-white font-bold shadow-2xl hover:shadow-[#8dbcc7]/50 rounded-2xl transition-all duration-300 hover:scale-105"
+              >
+                <Upload className="w-7 h-7" />
+                <span>رفع فاتورة</span>
+                <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            
+            <Link href="/dashboard">
+              <Button 
+                size="lg"
+                variant="outline"
+                className="gap-3 text-xl px-12 py-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-2 border-[#8dbcc7] text-[#8dbcc7] hover:bg-[#8dbcc7]/10 font-bold shadow-xl rounded-2xl transition-all duration-300"
+              >
+                <BarChart3 className="w-7 h-7" />
+                <span>شاهد التحليلات</span>
+              </Button>
+            </Link>
+          </motion.div>
+          
+          {/* Scroll Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          >
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="flex flex-col items-center gap-2 text-gray-400 dark:text-gray-600 cursor-pointer"
+              onClick={() => window.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}
+            >
+              <span className="text-sm font-medium">اكتشف المزيد</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section 
+        dir="rtl"
+        className="relative w-full py-20 md:py-24 px-6 md:px-16 lg:px-24 xl:px-32"
+      >
+        <div className="max-w-7xl mx-auto">
+          
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center space-y-4 mb-20"
+          >
+            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
+              كيف يعمل؟
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              ثلاث خطوات بسيطة للبدء
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "ارفع الفاتورة",
+                description: "التقط صورة أو اختر ملف من جهازك",
+                icon: Upload,
+              },
+              {
+                step: "2",
+                title: "التحليل التلقائي",
+                description: "الذكاء الاصطناعي يستخرج كل البيانات",
+                icon: Sparkles,
+              },
+              {
+                step: "3",
+                title: "شاهد النتائج",
+                description: "احصل على رؤى وتحليلات فورية",
+                icon: BarChart3,
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15 }}
+                className="relative group"
+              >
+                <div className="h-full p-8 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
+                  
+                  {/* Step Number */}
+                  <div className="absolute -top-6 right-8 w-14 h-14 rounded-full bg-gradient-to-br from-[#8dbcc7] to-[#d4a574] flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                    {item.step}
+                  </div>
+
+                  {/* Icon */}
+                  <div className="w-20 h-20 mt-6 mb-6 rounded-2xl bg-gradient-to-br from-[#8dbcc7]/20 to-[#d4a574]/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <item.icon className="w-10 h-10 text-[#8dbcc7]" />
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section 
+        dir="rtl"
+        className="relative w-full py-20 md:py-24 px-6 md:px-16 lg:px-24 xl:px-32"
+      >
+        <div className="max-w-7xl mx-auto">
+          
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center space-y-4 mb-20"
+          >
+            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
+              مميزات قوية
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              كل ما تحتاجه لإدارة فواتيرك بذكاء
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -10 }}
+              >
+                <Link href={feature.href}>
+                  <div className="group h-full p-8 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer">
+                    
+                    {/* Icon */}
+                    <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                      <feature.icon className="w-8 h-8 text-white" />
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#8dbcc7] transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                      {feature.description}
+                    </p>
+
+                    {/* Arrow */}
+                    <div className="flex items-center gap-2 mt-6 text-[#8dbcc7] font-bold opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
+                      <span>تعرف أكثر</span>
+                      <ArrowLeft className="w-5 h-5" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section 
+        dir="rtl"
+        className="relative w-full py-20 md:py-24 px-6 md:px-16 lg:px-24 xl:px-32 bg-gradient-to-br from-[#8dbcc7] via-[#9fc5cf] to-[#d4a574] overflow-hidden"
+      >
+        {/* Decorative Elements */}
+        <motion.div
+          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ rotate: -360, scale: [1, 1.3, 1] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl"
+        />
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-10">
+          
+          {/* Icon */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            animate={{ 
+              rotate: [0, 10, -10, 0],
+              y: [0, -15, 0]
+            }}
+            transition={{ 
+              rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+              y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+            }}
+            className="inline-block"
+          >
+            <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xl">
+              <Receipt className="w-16 h-16 text-white" />
+            </div>
+          </motion.div>
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <h2 className="text-5xl md:text-7xl font-black text-white leading-tight">
+              جاهز لتنظيم فواتيرك؟
+            </h2>
+            <p className="text-2xl text-white/90 leading-relaxed">
+              ابدأ الآن في تجربة فريدة لإدارة فواتيرك بذكاء
+            </p>
+          </motion.div>
+
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <Link href="/upload">
+              <Button 
+                size="lg"
+                className="gap-3 bg-white text-[#8dbcc7] hover:bg-gray-100 font-black text-2xl px-14 py-9 rounded-2xl shadow-2xl hover:scale-105 transition-all"
+              >
+                <Upload className="w-8 h-8" />
+                <span>ارفع فاتورة الآن</span>
+                <ArrowLeft className="w-7 h-7" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+    </div>
+  );
+}

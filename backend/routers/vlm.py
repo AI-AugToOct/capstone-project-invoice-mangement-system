@@ -129,17 +129,21 @@ async def analyze_vlm(request: VLMRequest, db: Session = Depends(get_db)):
         # ------------------------------------------------------------
         if not request.prompt:
             request.prompt = """
-You are a multilingual vision-language model trained to analyze invoices.
-The invoice image might be **in Arabic, English, or both** — you must read and understand all text accurately.
+أنت نموذج ذكاء اصطناعي متعدد اللغات مدرب على تحليل الفواتير.
+الفاتورة قد تكون بالعربية، الإنجليزية، أو كليهما - يجب أن تقرأ وتفهم جميع النصوص بدقة.
 
-Your task:
-1. Extract **structured invoice data**.
-2. Detect **the type of business** (category).
-3. Generate a **smart, meaningful insight** about the purchase behavior.
+مهمتك:
+1. استخراج بيانات الفاتورة المنظمة.
+2. تحديد نوع النشاط التجاري (التصنيف).
+3. **كشف نوع الفاتورة (Invoice Type)** بناءً على الكلمات المفتاحية والمؤشرات البصرية.
+4. استخراج الكلمات المفتاحية (بالعربية والإنجليزية) التي تساعد في تحديد نوع الفاتورة.
+5. إنشاء رؤية ذكية ومفيدة باللغة العربية عن سلوك الشراء.
 
-If any field is missing, unreadable, or not found, set it to "Not Mentioned".
+⚠️ مهم جداً: يجب أن يكون حقل "AI_Insight" باللغة العربية فقط ويصف الشراء بشكل مفيد للمستخدم.
 
-Return **only one valid JSON object** with all these exact keys and structure:
+إذا كان أي حقل مفقود أو غير قابل للقراءة، اكتبه كـ "Not Mentioned".
+
+أرجع **فقط** كائن JSON واحد صحيح بهذه المفاتيح والبنية بالضبط:
 
 {
   "Invoice Number": ...,
@@ -161,22 +165,58 @@ Return **only one valid JSON object** with all these exact keys and structure:
   "Amount Paid": ...,
   "Ticket Number": ...,
   "Category": ...,
-  "AI_Insight": ...
+  "Keywords_Detected": [...],
+  "Invoice_Type": "...",
+  "AI_Insight": "..." (يجب أن يكون بالعربية)
 }
 
-### Rules:
-- Output **valid JSON only** (no explanations or markdown).
-- The text may be Arabic or English — translate Arabic terms into English for keys but keep vendor names as-is.
-- Classify "Category" based on the business type:
-  Cafe ☕, Restaurant 🍽️, Supermarket 🛒, Pharmacy 💊, Clothing 👕, Electronics 💻, Utility 💡, Education 🎓, Health 🏥, Transport 🚗, Delivery 📦, or Other.
-- The "AI_Insight" must be 2–3 detailed sentences (in English) describing:
-  - What type of business it is.
-  - The nature of the purchase.
-  - Spending behavior (e.g., discount, frequency, amount trend).
-  Example:
-  "This purchase is from a coffee shop located in Riyadh. The customer spent a moderate amount, similar to previous transactions. Frequent coffee purchases may indicate a daily habit."
-- Always ensure numbers (Subtotal, Tax, Total, etc.) exactly match the printed values.
-- Do NOT include any markdown or explanations — return clean JSON only.
+### القواعد:
+
+**1. تحديد نوع الفاتورة (Invoice_Type):**
+ابحث عن الكلمات المفتاحية التالية في الفاتورة (بالعربية أو الإنجليزية):
+
+- **فاتورة شراء**: إذا وجدت كلمات مثل:
+  - شراء، Purchase, Buy, Sale, Receipt, Bill, Tax Invoice (for purchases)
+  
+- **فاتورة ضمان**: إذا وجدت كلمات مثل:
+  - ضمان، Warranty, Guarantee, Coverage, Protection Plan, Extended Warranty
+  
+- **فاتورة صيانة**: إذا وجدت كلمات مثل:
+  - صيانة، Maintenance, Service, Repair, Fixing, Servicing, Check-up
+  
+- **فاتورة ضريبية**: إذا وجدت كلمات مثل:
+  - فاتورة ضريبية، Tax Invoice, VAT Invoice, الرقم الضريبي (مع عدم وجود مشتريات واضحة)
+  
+- **أخرى**: إذا لم تجد أي من الكلمات السابقة أو كان نوع الفاتورة غير واضح
+
+**قواعد مهمة لتحديد النوع:**
+- اختر النوع الأكثر تحديداً إذا ظهرت مؤشرات متعددة
+- إذا كانت فاتورة تحتوي على "Tax Invoice" لكن بها مشتريات واضحة → اختر "فاتورة شراء"
+- إذا كانت فاتورة صيانة وضمان معاً → اختر "فاتورة صيانة" (الأكثر تحديداً)
+- لا تخمن عشوائياً - إذا لم تكن متأكداً → اختر "أخرى"
+
+⚠️ **مهم جداً:** يجب أن يكون "Invoice_Type" باللغة العربية فقط (مثال: "فاتورة شراء" وليس "Purchase Invoice")
+
+**2. الكلمات المفتاحية (Keywords_Detected):**
+استخرج قائمة بالكلمات المفتاحية التي وجدتها في الفاتورة والتي ساعدت في تحديد نوع الفاتورة.
+مثال: ["شراء", "Purchase", "فاتورة ضريبية", "Tax Invoice"]
+
+**3. تصنيف النشاط التجاري (Category):**
+صنّف "Category" بناءً على نوع النشاط التجاري:
+  Cafe ☕, Restaurant 🍽️, Supermarket 🛒, Pharmacy 💊, Clothing 👕, Electronics 💻, Utility 💡, Education 🎓, Health 🏥, Transport 🚗, Delivery 📦, أو Other.
+
+**4. الرؤية الذكية (AI_Insight):**
+يجب أن يكون "AI_Insight" من 2-3 جمل تفصيلية **بالعربية فقط** تصف:
+  - نوع النشاط التجاري.
+  - طبيعة المشتريات.
+  - سلوك الإنفاق (مثل: خصم، تكرار، اتجاه المبلغ).
+  مثال:
+  "هذا الشراء من مطعم Keeta في كانتون. العميل طلب وجبتين بمبلغ معتدل. المشتريات المتكررة من المطاعم قد تشير إلى عادة يومية."
+
+**5. دقة البيانات:**
+- تأكد دائماً أن الأرقام (Subtotal, Tax, Total, إلخ) تطابق القيم المطبوعة بالضبط.
+- أرجع **JSON صحيح فقط** (بدون شروحات أو markdown).
+- النص قد يكون بالعربية أو الإنجليزية - ترجم المصطلحات العربية للمفاتيح لكن احتفظ بأسماء المتاجر كما هي.
 """
 
         # ------------------------------------------------------------
@@ -227,10 +267,21 @@ Return **only one valid JSON object** with all these exact keys and structure:
         ai_insight = safe_get(parsed, "AI_Insight", "ai_insight", default="Not Mentioned")
         raw_date = safe_get(parsed, "Date", "date", "placed_at")
         parsed_date = parse_date(raw_date)
+        
+        # 🔍 Extract Invoice Type and Keywords from VLM response
+        invoice_type_from_vlm = safe_get(parsed, "Invoice_Type", "invoice_type", default="Other")
+        keywords_detected = safe_get(parsed, "Keywords_Detected", "keywords_detected", default=[])
+        
+        # Log detected keywords for debugging
+        logger.info(f"🔑 Keywords detected: {keywords_detected}")
+        logger.info(f"📋 Invoice type from VLM: {invoice_type_from_vlm}")
 
         # ------------------------------------------------------------
         # 💾 Save Invoice
         # ------------------------------------------------------------
+        # 🧾 Use invoice_type from VLM if available, otherwise fallback to category
+        invoice_type_ar = invoice_type_from_vlm if invoice_type_from_vlm != "Other" else normalized_category.get("ar", "شراء")
+        
         invoice = Invoice(
             invoice_number=safe_get(parsed, "Invoice Number", "invoice_number"),
             invoice_date=parsed_date,
@@ -249,7 +300,12 @@ Return **only one valid JSON object** with all these exact keys and structure:
             ticket_number=safe_get(parsed, "Ticket Number", "ticket_number"),
             category=json.dumps(normalized_category, ensure_ascii=False),
             ai_insight=ai_insight,
+            invoice_type=invoice_type_ar,  # نوع الفاتورة بالعربية
+            image_url=request.image_url,  # حفظ رابط الصورة من Supabase
         )
+        
+        logger.info(f"🧾 Stored invoice_type: {invoice_type_ar}")
+        logger.info(f"🖼️ Stored image_url: {request.image_url}")
 
         db.add(invoice)
         db.commit()

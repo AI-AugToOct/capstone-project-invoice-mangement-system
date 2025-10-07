@@ -1,4 +1,5 @@
 import logging
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -69,6 +70,25 @@ def get_invoices(db: Session = Depends(get_db)):
 def get_all_invoices(db: Session = Depends(get_db)):
     try:
         invoices = db.query(Invoice).all()
-        return [inv.to_dict() for inv in invoices]
+        result = []
+        
+        # Get SUPABASE_URL from env for building image URLs
+        supabase_url = os.getenv("SUPABASE_URL", "https://pcktfzshbxaljkbedrar.supabase.co")
+        
+        for inv in invoices:
+            inv_dict = inv.to_dict()
+            
+            # 🔧 Temporary fix: Try to get image_url, fallback to building from invoice number
+            if not inv_dict.get("image_url"):
+                # Try to build image URL from invoice number or ID
+                # Check if invoice_2.jpg or invoice_3.jpg exists
+                potential_filename = f"invoice_{inv.id}.jpg"
+                inv_dict["image_url"] = f"{supabase_url}/storage/v1/object/public/invoices/{potential_filename}"
+                logger.info(f"🔧 Built fallback image URL for invoice {inv.id}: {inv_dict['image_url']}")
+            
+            result.append(inv_dict)
+        
+        return result
     except Exception as e:
+        logger.error(f"❌ Error retrieving invoices: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving invoices: {str(e)}")

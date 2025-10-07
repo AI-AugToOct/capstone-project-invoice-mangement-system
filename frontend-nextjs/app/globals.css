@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 192 36% 65%; /* #8dbcc7 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 31 50% 65%; /* #d4a574 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 192 36% 90%;
+    --accent-foreground: 192 36% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 192 20% 85%;
+    --input: 192 20% 90%;
+    --ring: 192 36% 65%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 192 36% 65%; /* #8dbcc7 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 31 50% 65%; /* #d4a574 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 192 36% 20%;
+    --accent-foreground: 192 36% 90%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 192 20% 25%;
+    --input: 192 20% 25%;
+    --ring: 192 36% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* RTL Support */
+html[dir="rtl"] {
+  direction: rtl;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-600;
+}
+
+/* Custom Animations */
+@keyframes typing {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.animate-typing {
+  animation: typing 1.5s ease-in-out infinite;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass Effect */
+.glass-effect {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover Scale Effect */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Animated Gradient Background - Improved */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-bg {
+  background: linear-gradient(
+    -45deg,
+    #e0f2fe,
+    #fefce8,
+    #f1f5f9,
+    #e0e7ff
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 25s ease infinite;
+  transition: background 0.7s ease-in-out;
+}
+
+.dark .animated-bg {
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #1e293b,
+    #334155,
+    #0f172a
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 25s ease infinite;
+}
+
+/* Home Page Animated Background - More Dynamic */
+@keyframes gradientShiftHome {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-bg-home {
+  background: linear-gradient(
+    -45deg,
+    #dbeafe,
+    #e0e7ff,
+    #fce7f3,
+    #dbeafe,
+    #f0f9ff,
+    #fae8ff,
+    #dbeafe
+  );
+  background-size: 400% 400%;
+  animation: gradientShiftHome 20s ease infinite;
+  transition: background 0.7s ease-in-out;
+}
+
+.dark .animated-bg-home {
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #1e1b4b,
+    #1e293b,
+    #0f172a,
+    #18181b,
+    #1e1b4b,
+    #0f172a
+  );
+  background-size: 400% 400%;
+  animation: gradientShiftHome 20s ease infinite;
+}
+
+/* Gradient Animation for Text */
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
+  background-size: 200% 200%;
+}
+
+/* Grid Pattern Background */
+.bg-grid-white\/10 {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Full-width Animated Gradient Background - Updated with new colors */
+.animate-gradient {
+  background: linear-gradient(-45deg, #e0f7fa, #fff9e6, #f0f4f8, #e8f5f1, #e0f7fa);
+  background-size: 400% 400%;
+  animation: gradientShift 25s ease infinite;
+}
+
+.dark .animate-gradient {
+  background: linear-gradient(-45deg, #0f172a, #1e293b, #334155, #1e1b4b, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientShift 25s ease infinite;
+}
+

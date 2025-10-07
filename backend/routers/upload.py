@@ -32,8 +32,9 @@ async def upload_invoice(file: UploadFile = File(...)):
         if "error" in str(res).lower():
             raise HTTPException(status_code=400, detail=f"Upload failed: {res}")
 
-       
-        public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(file_path)
+        # Build proper public URL
+        # Format: https://[PROJECT].supabase.co/storage/v1/object/public/invoices/filename.jpg
+        public_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_NAME}/{file_path}"
         logger.info(f"✅ Uploaded successfully: {public_url}")
 
         return {"url": public_url}

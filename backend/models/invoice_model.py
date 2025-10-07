@@ -24,6 +24,8 @@ class Invoice(Base):
     ticket_number = Column(String)
     category = Column(String)
     ai_insight = Column(String)  # 🧠 NEW: for AI-generated insight text
+    invoice_type = Column(String)  # نوع الفاتورة (مقهى، مطعم، صيدلية، تأمين، شراء)
+    image_url = Column(String)  # رابط الصورة من Supabase
     created_at = Column(DateTime, default=func.now())
 
     def to_dict(self):
