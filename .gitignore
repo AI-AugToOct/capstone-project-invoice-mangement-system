@@ -1,3 +1,10 @@
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 # Python
 __pycache__/
 *.py[cod]
@@ -7,54 +14,42 @@ __pycache__/
 venv/
 env/
 ENV/
-*.egg
 *.egg-info/
 dist/
 build/
+.pytest_cache/
 
-# IDEs
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Databases
-*.db
-*.sqlite
-*.sqlite3
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
 *.log
 logs/
 
-# OS
-.DS_Store
-Thumbs.db
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# Next.js
-frontend-nextjs/.next/
-frontend-nextjs/out/
-frontend-nextjs/node_modules/
+# Docker
+*.dockerignore
 
-# Node
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Misc
-*.bak
-*.tmp
-*.temp
+# Build
+build/
+dist/

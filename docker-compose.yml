@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: invoice-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=docker
+    env_file:
+      - .env
+    volumes:
+      - ./backend:/app/backend
+      - ./backend/__pycache__:/app/backend/__pycache__
+    networks:
+      - invoice-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: invoice-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000
+      - NODE_ENV=production
+    env_file:
+      - frontend-nextjs/.env.local
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - invoice-network
+    restart: unless-stopped
+
+networks:
+  invoice-network:
+    driver: bridge
+

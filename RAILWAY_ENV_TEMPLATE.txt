@@ -1,0 +1,47 @@
+# ============================================
+# RAILWAY ENVIRONMENT VARIABLES
+# Copy these to Railway Dashboard
+# ============================================
+
+# ===== DATABASE =====
+DATABASE_URL=postgresql://postgres:[YOUR_PASSWORD]@db.pcktfzshbxaljkbedrar.supabase.co:5432/postgres
+
+# ===== SUPABASE =====
+SUPABASE_URL=https://pcktfzshbxaljkbedrar.supabase.co
+SUPABASE_KEY=[GET_FROM_SUPABASE_DASHBOARD]
+SUPABASE_SERVICE_ROLE_KEY=[GET_FROM_SUPABASE_DASHBOARD]
+SUPABASE_BUCKET=invoices
+
+# ===== AI SERVICES =====
+OPENAI_API_KEY=[GET_FROM_OPENAI_DASHBOARD]
+EMBEDDING_MODEL=text-embedding-3-small
+REFINER_MODEL=gpt-4o-mini
+FRIENDLI_TOKEN=[GET_FROM_FRIENDLI_DASHBOARD]
+FRIENDLI_URL=https://api.friendli.ai/dedicated/v1/chat/completions
+FRIENDLI_MODEL_ID=[YOUR_MODEL_ID]
+
+# ===== ENVIRONMENT =====
+ENVIRONMENT=production
+PORT=8000
+
+# ============================================
+# HOW TO GET YOUR API KEYS:
+# ============================================
+# 
+# SUPABASE:
+#   1. Go to: https://supabase.com/dashboard/project/pcktfzshbxaljkbedrar
+#   2. Settings → API
+#   3. Copy "anon public" key for SUPABASE_KEY
+#   4. Copy "service_role" key for SUPABASE_SERVICE_ROLE_KEY
+#   5. Settings → Database → Connection string for DATABASE_URL
+#
+# OPENAI:
+#   1. Go to: https://platform.openai.com/api-keys
+#   2. Create new secret key
+#   3. Copy for OPENAI_API_KEY
+#
+# FRIENDLI AI:
+#   1. Go to your Friendli AI dashboard
+#   2. Get your API token
+#   3. Copy for FRIENDLI_TOKEN
+#

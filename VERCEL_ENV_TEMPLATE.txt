@@ -1,0 +1,33 @@
+# ============================================
+# VERCEL ENVIRONMENT VARIABLES
+# Copy these to Vercel Dashboard
+# Settings → Environment Variables
+# ============================================
+
+# ===== API CONFIGURATION =====
+# ⚠️ UPDATE THIS AFTER RAILWAY DEPLOYMENT!
+# Replace with your actual Railway backend URL
+NEXT_PUBLIC_API_BASE_URL=https://[YOUR-RAILWAY-BACKEND-URL].up.railway.app
+
+# ===== SUPABASE (PUBLIC KEYS ONLY) =====
+NEXT_PUBLIC_SUPABASE_URL=https://pcktfzshbxaljkbedrar.supabase.co
+NEXT_PUBLIC_SUPABASE_KEY=[GET_ANON_KEY_FROM_SUPABASE]
+
+# ============================================
+# HOW TO GET YOUR KEYS:
+# ============================================
+#
+# SUPABASE ANON KEY:
+#   1. Go to: https://supabase.com/dashboard/project/pcktfzshbxaljkbedrar
+#   2. Settings → API
+#   3. Copy "anon public" key (this is safe to expose to browser)
+#
+# ============================================
+# IMPORTANT NOTES:
+# ============================================
+# 1. Only NEXT_PUBLIC_* variables are exposed to browser
+# 2. NEVER put private keys (SERVICE_ROLE_KEY, OPENAI_API_KEY) here
+# 3. The "anon" key is safe to expose - it's protected by Row Level Security
+# 4. Apply these to: Production, Preview, and Development
+# 5. After adding variables, trigger a new deployment
+#

@@ -21,14 +21,17 @@ app = FastAPI(
 )
 
 # --------------------------
-# CORS Middleware (للسماح بالاتصال من Frontend)
+# CORS Middleware
 # --------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://frontend:3000",  # Docker
         "http://localhost:8501",  # Streamlit
+        "https://*.vercel.app",  # Vercel deployments
+        "*",  # Allow all in development - restrict in production
     ],
     allow_credentials=True,
     allow_methods=["*"],

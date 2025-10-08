@@ -1,199 +1,264 @@
-# مُفَوْتِر - Mufawter
-### Smart Invoice Management System | نظام ذكي لإدارة الفواتير
+# 📑 Smart Invoice Analyzer
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-blue)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-green)
+An intelligent invoice management system powered by FastAPI, Next.js, Supabase, and Friendli AI.
 
----
+## 🌟 Features
 
-## 🎯 Overview | نظرة عامة
+- 📸 **Smart Upload**: Upload invoices via file upload or camera capture
+- 🤖 **AI Analysis**: Automated invoice data extraction using VLM (Vision Language Models)
+- 💬 **Chat Interface**: Ask questions about your invoices using natural language
+- 📊 **Dashboard**: Comprehensive analytics and insights
+- 🔍 **Invoice Management**: Search, filter, and manage all invoices
+- 🌙 **Dark Mode**: Built-in theme switching
 
-**Mufawter** is an AI-powered invoice management system that automatically extracts, analyzes, and stores invoice data from images or PDFs. The system features a smart Arabic chatbot that can answer natural language queries about your invoices using advanced Text-to-SQL and semantic search capabilities.
-
-**مُفَوْتِر** هو نظام ذكي لإدارة الفواتير يستخدم الذكاء الاصطناعي لاستخراج وتحليل وتخزين بيانات الفواتير من الصور أو ملفات PDF تلقائياً. يتميز النظام بمساعد ذكي يتحدث العربية ويمكنه الإجابة على أسئلتك عن فواتيرك باستخدام تقنيات Text-to-SQL والبحث الدلالي المتقدمة.
-
----
-
-## ✨ Features | المميزات
-
-### 🤖 AI-Powered Invoice Extraction
-- Vision Language Model (Qwen2.5-VL-32B) for automatic data extraction
-- Supports images and PDFs
-- Extracts vendor, amounts, dates, items, tax, and payment method
-
-### 💬 Intelligent Arabic Chatbot
-- Natural language queries in Arabic
-- Dynamic Text-to-SQL generation
-- Semantic search using OpenAI embeddings
-- Context-aware responses
-
-### 📊 Interactive Dashboard
-- Real-time spending analytics
-- Category breakdown
-- Monthly trends
-- Top vendors analysis
-
-### 🔍 Advanced Search
-- SQL-based precision search
-- Semantic similarity search
-- Hybrid search combining both methods
-
-### 📱 Modern UI
-- Responsive design for all devices
-- Dark/Light theme support
-- RTL (Arabic) layout
-- Beautiful SVG illustrations
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Next.js 14** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Framer Motion** - Animations
-- **Recharts** - Data visualization
+## 🏗️ Tech Stack
 
 ### Backend
-- **FastAPI** - Python web framework
-- **SQLAlchemy** - ORM
-- **PostgreSQL + pgvector** - Database with vector search
-- **OpenAI GPT-4o-mini** - LLM for chat and SQL generation
-- **OpenAI Embeddings** - Semantic search
-- **Friendli AI (Qwen2.5-VL)** - Vision model for invoice extraction
+- **FastAPI** - Modern Python web framework
+- **PostgreSQL** - Database with pgvector extension
+- **Supabase** - Backend as a Service (Storage + DB)
+- **OpenAI** - Embeddings for semantic search
+- **Friendli AI** - Chat completions and VLM
 
-### Infrastructure
-- **Supabase** - PostgreSQL hosting & storage
-- **Vercel** - Frontend hosting (recommended)
-- **Railway** - Backend hosting (recommended)
-
----
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Radix UI** - Accessible component primitives
+- **Framer Motion** - Smooth animations
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+- Python 3.12+
+- Node.js 20+
+- PostgreSQL (or Supabase account)
+- Docker (optional)
+
+### Option 1: One-Command Start
+
+**Windows:**
 ```bash
-# Install Node.js 18+ and Python 3.12+
-node --version  # v18.0.0+
-python --version  # Python 3.12+
+run.bat
 ```
 
-### 1. Clone Repository
+**Linux/Mac:**
 ```bash
-git clone <your-repo-url>
-cd capstone-project-invoice-mangement-system
+chmod +x run.sh
+./run.sh
 ```
 
-### 2. Setup Backend
+Choose between:
+1. **Docker mode** - Production-like environment
+2. **Local mode** - Development with hot reload
+
+### Option 2: Docker Compose
+
 ```bash
-# Install Python dependencies
+docker-compose up -d
+```
+
+Access:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Option 3: Manual Setup
+
+**1. Backend Setup**
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+
+# Activate (Linux/Mac)
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Create .env file in root
-SUPABASE_URL=your_supabase_url
-SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-SUPABASE_BUCKET=invoices
-DATABASE_URL=your_postgres_connection_string
-OPENAI_API_KEY=your_openai_api_key
-FRIENDLI_TOKEN=your_friendli_token
-FRIENDLI_URL=https://api.friendli.ai/dedicated/v1/chat/completions
-FRIENDLI_MODEL_ID=your_model_id
-EMBEDDING_MODEL=text-embedding-3-small
+# Run backend
+cd backend
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### 3. Setup Database
-```bash
-# Run SQL setup script in your Supabase SQL Editor
-# File: database_setup.sql
-```
-
-### 4. Setup Frontend
+**2. Frontend Setup**
 ```bash
 cd frontend-nextjs
 npm install
-
-# Create .env.local
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+npm run dev
 ```
 
-### 5. Run Project
-```bash
-# From project root
-./run.bat  # Windows
-# or
-./run.sh   # Linux/Mac
+## ⚙️ Configuration
+
+### Environment Variables
+
+**Backend (.env):**
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_BUCKET=invoices
+DATABASE_URL=postgresql://user:password@host:5432/database
+OPENAI_API_KEY=your_openai_key
+EMBEDDING_MODEL=text-embedding-3-small
+FRIENDLI_TOKEN=your_friendli_token
+FRIENDLI_URL=https://api.friendli.ai/dedicated/v1/chat/completions
+FRIENDLI_MODEL_ID=your_model_id
 ```
 
-The backend will start on `http://127.0.0.1:8000`  
-The frontend will open automatically on `http://localhost:3000`
+**Frontend (frontend-nextjs/.env.local):**
+```env
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_KEY=your_anon_key
+```
 
----
+See `.env.example` files for templates.
 
-## 📁 Project Structure
+## 📦 Project Structure
 
 ```
 capstone-project-invoice-mangement-system/
 ├── backend/
-│   ├── routers/
-│   │   ├── chat.py          # Intelligent chatbot endpoint
-│   │   ├── vlm.py           # Vision model for invoice extraction
-│   │   ├── upload.py        # File upload handler
-│   │   ├── invoices.py      # Invoice CRUD operations
-│   │   └── dashboard.py     # Analytics endpoints
-│   ├── models/
-│   │   ├── invoice_model.py
-│   │   ├── item_model.py
-│   │   └── embedding_model.py
-│   ├── schemas/
-│   ├── database.py
-│   ├── utils.py
-│   └── main.py
+│   ├── models/           # Database models
+│   ├── routers/          # API endpoints
+│   ├── schemas/          # Pydantic schemas
+│   ├── main.py           # FastAPI app
+│   └── database.py       # DB connection
 ├── frontend-nextjs/
-│   ├── app/
-│   │   ├── page.tsx         # Home page
-│   │   ├── upload/          # Upload interface
-│   │   ├── invoices/        # Invoice list
-│   │   ├── dashboard/       # Analytics
-│   │   └── chat/            # Chatbot interface
-│   ├── components/
-│   └── lib/
-├── database_setup.sql
-├── requirements.txt
-├── run.bat
-└── README.md
+│   ├── app/              # Next.js pages
+│   ├── components/       # React components
+│   ├── lib/              # Utilities
+│   └── public/           # Static assets
+├── Dockerfile.backend    # Backend container
+├── Dockerfile.frontend   # Frontend container
+├── docker-compose.yml    # Multi-container setup
+├── run.sh               # Unix startup script
+├── run.bat              # Windows startup script
+└── requirements.txt     # Python dependencies
 ```
 
----
+## 🚢 Deployment
+
+### Railway (Backend)
+1. Create new project on [Railway](https://railway.app)
+2. Add environment variables from `.env`
+3. Set Dockerfile path: `Dockerfile.backend`
+4. Deploy
+
+### Vercel (Frontend)
+1. Import project on [Vercel](https://vercel.com)
+2. Set root directory: `frontend-nextjs`
+3. Add environment variables:
+   - `NEXT_PUBLIC_API_BASE_URL` → Railway backend URL
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_KEY`
+4. Deploy
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+pytest backend/
+
+# Frontend tests
+cd frontend-nextjs
+npm test
+```
+
+## 📝 API Documentation
+
+Once running, visit:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## 🛠️ Development
+
+### Backend Development
+```bash
+# Install dev dependencies
+pip install -r requirements.txt
+
+# Run with hot reload
+uvicorn backend.main:app --reload
+
+# Format code
+black backend/
+
+# Lint
+flake8 backend/
+```
+
+### Frontend Development
+```bash
+cd frontend-nextjs
+
+# Run dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Lint
+npm run lint
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Port already in use:**
+```bash
+# Windows
+taskkill /F /IM python.exe
+taskkill /F /IM node.exe
+
+# Linux/Mac
+pkill -f uvicorn
+pkill -f next
+```
+
+**Docker issues:**
+```bash
+# Clean up
+docker-compose down
+docker system prune -a
+
+# Rebuild
+docker-compose build --no-cache
+docker-compose up
+```
+
+**Frontend can't connect to backend:**
+- Check `NEXT_PUBLIC_API_BASE_URL` in `.env.local`
+- Verify backend is running on correct port
+- Check browser console for CORS errors
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for more troubleshooting tips.
+
+## 📄 License
+
+This project is licensed under the MIT License.
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
----
+## 📞 Support
 
-## 📄 License
-
-This project is part of a capstone project for educational purposes.
-
----
-
-## 👨‍💻 Developer
-
-Developed as a capstone project demonstrating AI integration in financial document management.
+For issues and questions:
+- Create an issue on GitHub
+- Check [DEPLOYMENT.md](DEPLOYMENT.md) for deployment help
+- Review API docs at `/docs` endpoint
 
 ---
 
-## 🔗 Links
-
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [OpenAI API](https://platform.openai.com/docs)
-- [Supabase Documentation](https://supabase.com/docs)
-
----
-
-Made with ❤️ using AI and modern web technologies
+**Built with ❤️ using FastAPI, Next.js, Supabase, and Friendli AI**
