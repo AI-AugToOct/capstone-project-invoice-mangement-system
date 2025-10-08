@@ -18,8 +18,8 @@ interface Invoice {
   vendor: string;
   invoice_number?: string;
   invoice_type?: string;
-  date: string;
-  total: string;
+  invoice_date: string;
+  total_amount: string;
   tax?: string;
   payment_method?: string;
   image_url?: string;
@@ -340,8 +340,8 @@ export default function ChatPage() {
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                       <Calendar className="w-3 h-3 flex-shrink-0" />
                                       <span>
-                                        {invoice.date
-                                          ? new Date(invoice.date).toLocaleDateString("ar-SA", {
+                                        {invoice.invoice_date
+                                          ? new Date(invoice.invoice_date).toLocaleDateString("ar-SA", {
                                               year: "numeric",
                                               month: "long",
                                               day: "numeric"
@@ -355,7 +355,7 @@ export default function ChatPage() {
                                       <div className="flex items-center gap-1">
                                         <DollarSign className="w-4 h-4 text-green-600" />
                                         <span className="text-base font-bold text-green-600">
-                                          {parseFloat(invoice.total || "0").toFixed(2)} ر.س
+                                          {parseFloat(invoice.total_amount || "0").toFixed(2)} ر.س
                                         </span>
                                       </div>
                                       
