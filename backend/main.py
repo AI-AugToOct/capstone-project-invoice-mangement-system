@@ -39,13 +39,26 @@ app.add_middleware(
 )
 
 # --------------------------
+# Health & Root Endpoints (for Railway)
+# --------------------------
+@app.get("/")
+def root():
+    """Root endpoint - confirms API is running"""
+    return {"status": "✅ Smart Invoice Analyzer is running successfully!"}
+
+@app.get("/healthz")
+def health_check():
+    """Health check endpoint for Railway"""
+    return {"ok": True}
+
+# --------------------------
 # Routers
 # --------------------------
 app.include_router(upload.router)
 app.include_router(vlm.router)
 app.include_router(chat.router)
 app.include_router(dashboard.router)
-app.include_router(invoices.router)  # ✅ الآن المسار موجود
+app.include_router(invoices.router)
 
 # --------------------------
 # Startup event
@@ -62,10 +75,3 @@ def startup_event():
         logger.error(f"   Make sure DATABASE_URL is correct and Supabase is accessible")
         # Don't crash the app - let it start for debugging
         logger.warning("⚠️  Continuing startup without tables...")
-
-# --------------------------
-# Root endpoint
-# --------------------------
-@app.get("/")
-def root():
-    return {"message": "Hello from FastAPI + Supabase + HuggingFace VLM 🚀"}
