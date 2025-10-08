@@ -51,6 +51,10 @@ ENV PATH="/opt/venv/bin:$PATH" \
 # Set working directory
 WORKDIR /app
 
+# Copy and set permissions for entrypoint script (before switching user)
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Copy application code
 COPY backend/ ./backend/
 
@@ -61,10 +65,5 @@ USER appuser
 # Expose default port (Railway will override with $PORT)
 EXPOSE 8000
 
-# Health check (optional but recommended)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD ["sh", "-c", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8000}/').read()\" || exit 1"]
-
-# Start command with $PORT environment variable support
-# Uses exec form with shell for proper variable expansion
-CMD ["sh", "-c", "uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Entrypoint script handles PORT variable expansion
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
