@@ -53,11 +53,15 @@ app.include_router(invoices.router)  # ✅ الآن المسار موجود
 @app.on_event("startup")
 def startup_event():
     logger.info("🚀 Starting FastAPI...")
+    logger.info("📊 Creating database tables...")
     try:
         Base.metadata.create_all(bind=engine)
-        logger.info("✅ Tables created successfully.")
+        logger.info("✅ Database tables ready!")
     except Exception as e:
         logger.error(f"❌ Error creating tables: {e}")
+        logger.error(f"   Make sure DATABASE_URL is correct and Supabase is accessible")
+        # Don't crash the app - let it start for debugging
+        logger.warning("⚠️  Continuing startup without tables...")
 
 # --------------------------
 # Root endpoint

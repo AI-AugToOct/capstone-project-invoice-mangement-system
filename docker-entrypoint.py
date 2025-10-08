@@ -16,6 +16,19 @@ print("=" * 50)
 print(f"DEBUG: PORT environment variable: {os.environ.get('PORT', 'NOT SET')}")
 print(f"DEBUG: Using port: {port}")
 
+# Debug: Check DATABASE_URL (masked for security)
+db_url = os.environ.get('DATABASE_URL', 'NOT SET')
+if db_url != 'NOT SET':
+    # Show only host part for debugging
+    if '@' in db_url:
+        host_part = db_url.split('@')[1].split('/')[0] if '/' in db_url.split('@')[1] else db_url.split('@')[1]
+        print(f"DEBUG: DATABASE_URL host: {host_part}")
+    else:
+        print(f"DEBUG: DATABASE_URL: INVALID FORMAT")
+else:
+    print(f"DEBUG: DATABASE_URL: NOT SET")
+print()
+
 # Validate port is numeric
 try:
     port_int = int(port)
