@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, MessageSquare, Bot, User, Loader2, Sparkles, Store, Calendar, DollarSign, Download, Eye } from "lucide-react";
+import { Send, MessageSquare, Bot, User, Loader2, Sparkles, Store, Calendar, DollarSign, Download, Eye, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,7 +11,7 @@ import { API_BASE } from "@/lib/utils";
 import Image from "next/image";
 import ImageModal from "@/components/ImageModal";
 import { downloadInvoiceAsPDF } from "@/lib/pdfUtils";
-import GlobalLoader from "@/components/GlobalLoader";
+import { useTheme } from "next-themes";
 
 interface Invoice {
   id: number;
@@ -49,10 +49,16 @@ export default function ChatPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, loading]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -94,7 +100,7 @@ export default function ChatPage() {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.answer || "عذرًا، لم أتمكن من الحصول على إجابة.",
+        content: data.reply || "عذرًا، لم أتمكن من الحصول على إجابة.",
         invoices: data.invoices || undefined,
         timestamp: new Date(),
       };
@@ -147,21 +153,43 @@ export default function ChatPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4"
       >
-        <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-          الدردشة الذكية
-        </h1>
+        <div className="flex justify-center mb-4">
+          {mounted && (
+            <Image
+              src={theme === "dark" ? "/title-chat-dark.svg" : "/title-chat.svg"}
+              alt="الدردشة الذكية"
+              width={500}
+              height={120}
+              className="w-full max-w-xl h-auto"
+              priority
+            />
+          )}
+          {!mounted && (
+            <Image
+              src="/title-chat.svg"
+              alt="الدردشة الذكية"
+              width={500}
+              height={120}
+              className="w-full max-w-xl h-auto"
+              priority
+            />
+          )}
+        </div>
         <p className="text-xl text-gray-600 dark:text-gray-400">
           اسأل أي سؤال عن فواتيرك واحصل على إجابات فورية
         </p>
       </motion.div>
 
-      {/* Chat Container */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
-        className="max-w-4xl mx-auto"
-      >
+      {/* Main Content Grid - Chat + Tips Side by Side */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Chat Container - Takes 8 columns on large screens */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-8"
+        >
         <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl rounded-2xl">
           <CardHeader className="border-b bg-muted/50">
             <div className="flex items-center gap-3">
@@ -393,27 +421,24 @@ export default function ChatPage() {
                   ))}
                 </AnimatePresence>
 
-                {/* Typing Indicator */}
+                {/* Typing Indicator - مؤشر جاري الرد */}
                 {loading && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex gap-3"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
                       <Bot className="w-4 h-4 text-white" />
                     </div>
                     <div className="bg-muted p-4 rounded-2xl rounded-bl-sm">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-typing" />
-                        <div
-                          className="w-2 h-2 rounded-full bg-muted-foreground animate-typing"
-                          style={{ animationDelay: "0.2s" }}
-                        />
-                        <div
-                          className="w-2 h-2 rounded-full bg-muted-foreground animate-typing"
-                          style={{ animationDelay: "0.4s" }}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0s" }} />
+                          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0.1s" }} />
+                          <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0.2s" }} />
+                        </div>
+                        <span className="text-xs text-muted-foreground mr-2">جاري الرد...</span>
                       </div>
                     </div>
                   </motion.div>
@@ -473,38 +498,58 @@ export default function ChatPage() {
         </Card>
       </motion.div>
 
-      {/* Tips Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="max-w-4xl mx-auto"
-      >
-        <Card className="border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-              نصائح للاستخدام
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span>•</span>
-                <span>اسأل عن إجمالي المصروفات أو متوسط الفواتير</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span>•</span>
-                <span>استفسر عن فواتير متجر معين أو فئة معينة</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span>•</span>
-                <span>احصل على تحليلات ذكية عن عادات الإنفاق</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </motion.div>
+        {/* نصائح الاستخدام - Takes 4 columns on large screens */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="lg:col-span-4"
+        >
+          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border-blue-200 dark:border-blue-800 shadow-lg sticky top-24" dir="rtl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <CardTitle className="text-base text-blue-900 dark:text-blue-100">نصائح للاستخدام الأمثل</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-gray-700 dark:text-gray-300 font-semibold mb-3">
+                💡 اكتب سؤالك بوضوح للحصول على إجابات دقيقة:
+              </p>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-start gap-2 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded-lg">
+                  <DollarSign className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">أسئلة عن المبالغ:</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-[10px] mt-1 leading-relaxed">
+                      &quot;كم إجمالي مصروفاتي؟&quot; • &quot;ما متوسط قيمة فواتيري؟&quot;
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded-lg">
+                  <Store className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">أسئلة عن المتاجر:</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-[10px] mt-1 leading-relaxed">
+                      &quot;أعطني فواتير دانكن&quot; • &quot;أكثر متجر أشتري منه؟&quot;
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 bg-white/60 dark:bg-gray-800/60 p-2.5 rounded-lg">
+                  <BarChart3 className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-xs">تحليلات وإحصائيات:</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-[10px] mt-1 leading-relaxed">
+                      &quot;حلل عادات الإنفاق عندي&quot; • &quot;وين أصرف أكثر؟&quot;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+      </div>
 
       {/* Image Modal */}
       <ImageModal
@@ -512,9 +557,6 @@ export default function ChatPage() {
         onClose={() => setSelectedImage(null)}
         title="معاينة الفاتورة"
       />
-
-      {/* Global Loader */}
-      <GlobalLoader show={loading} message="جاري معالجة سؤالك..." />
     </div>
     </main>
     </div>

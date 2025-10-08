@@ -1,0 +1,26 @@
+<svg width="550" height="120" viewBox="0 0 550 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="titleGradient3Dark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#b3d9e3;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#c4e5ed;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8c89a;stop-opacity:1" />
+    </linearGradient>
+    <filter id="titleShadow3Dark">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <text 
+    x="275" 
+    y="75" 
+    font-family="'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', sans-serif" 
+    font-size="56" 
+    font-weight="900" 
+    text-anchor="middle" 
+    fill="url(#titleGradient3Dark)"
+    filter="url(#titleShadow3Dark)"
+    letter-spacing="2">
+    جاهز لتنظيم فواتيرك؟
+  </text>
+</svg>
+

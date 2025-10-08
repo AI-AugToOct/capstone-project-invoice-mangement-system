@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
+import Image from "next/image";
 import {
   BarChart3,
   FileText,
@@ -81,6 +83,12 @@ export default function DashboardPage() {
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -163,15 +171,19 @@ export default function DashboardPage() {
   };
 
   // 🧠 SMART INSIGHTS GENERATOR
-  const generateSmartInsights = (): string[] => {
-    const insights: string[] = [];
+  const generateSmartInsights = (): Array<{icon: string, label: string, value: string, trend?: 'up' | 'down' | 'neutral'}> => {
+    const insights: Array<{icon: string, label: string, value: string, trend?: 'up' | 'down' | 'neutral'}> = [];
     
     if (filteredInvoices.length === 0) {
-      return ["لا توجد بيانات كافية لتوليد رؤى ذكية."];
+      return [{icon: "📊", label: "البيانات", value: "لا توجد بيانات كافية لتوليد رؤى", trend: 'neutral'}];
     }
 
     // Month-over-month growth
     const now = new Date();
+    const currentMonth = now.toLocaleDateString("ar", { month: "long", year: "numeric" });
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonth = lastMonthDate.toLocaleDateString("ar", { month: "long", year: "numeric" });
+    
     const thisMonth = filteredInvoices.filter(inv => {
       const date = new Date(inv.invoice_date);
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
@@ -179,7 +191,6 @@ export default function DashboardPage() {
     
     const lastMonth = filteredInvoices.filter(inv => {
       const date = new Date(inv.invoice_date);
-      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       return date.getMonth() === lastMonthDate.getMonth() && date.getFullYear() === lastMonthDate.getFullYear();
     });
 
@@ -188,11 +199,20 @@ export default function DashboardPage() {
 
     if (lastMonthTotal > 0) {
       const growth = ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-      if (growth > 0) {
-        insights.push(`📈 إنفاقك هذا الشهر زاد بنسبة ${growth.toFixed(1)}٪ مقارنة بالشهر الماضي.`);
-      } else if (growth < 0) {
-        insights.push(`📉 إنفاقك هذا الشهر انخفض بنسبة ${Math.abs(growth).toFixed(1)}٪ مقارنة بالشهر الماضي.`);
-      }
+      const trend = growth > 0 ? 'up' : growth < 0 ? 'down' : 'neutral';
+      insights.push({
+        icon: trend === 'up' ? '📈' : '📉',
+        label: `المقارنة الشهرية (${currentMonth} مقابل ${previousMonth})`,
+        value: `${growth > 0 ? 'زيادة' : 'انخفاض'} بنسبة ${Math.abs(growth).toFixed(1)}٪ - إجمالي ${thisMonthTotal.toFixed(2)} ر.س`,
+        trend: trend
+      });
+    } else if (thisMonthTotal > 0) {
+      insights.push({
+        icon: '📊',
+        label: `الإنفاق الشهري (${currentMonth})`,
+        value: `${thisMonthTotal.toFixed(2)} ر.س - ${thisMonth.length} ${thisMonth.length === 1 ? 'فاتورة' : 'فواتير'}`,
+        trend: 'neutral'
+      });
     }
 
     // Top vendor
@@ -204,7 +224,39 @@ export default function DashboardPage() {
     
     const topVendor = Object.entries(vendorCount).sort((a: any, b: any) => b[1] - a[1])[0];
     if (topVendor) {
-      insights.push(`🏪 أكثر متجر تعاملت معه: ${topVendor[0]} (${topVendor[1]} ${topVendor[1] === 1 ? 'فاتورة' : 'فواتير'}).`);
+      insights.push({
+        icon: '🏪',
+        label: 'المتجر الأكثر تعاملاً',
+        value: `${topVendor[0]} - ${topVendor[1]} ${topVendor[1] === 1 ? 'فاتورة' : 'فواتير'}`,
+        trend: 'neutral'
+      });
+    }
+
+    // Average spending
+    const avgSpending = filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || "0"), 0) / filteredInvoices.length;
+    insights.push({
+      icon: '💵',
+      label: 'متوسط قيمة الفاتورة',
+      value: `${avgSpending.toFixed(2)} ر.س`,
+      trend: 'neutral'
+    });
+
+    // Most expensive category
+    const categoryTotals = filteredInvoices.reduce((acc: any, inv) => {
+      const type = inv.invoice_type || "أخرى";
+      acc[type] = (acc[type] || 0) + parseFloat(inv.total_amount || "0");
+      return acc;
+    }, {});
+    
+    const topCategory = Object.entries(categoryTotals).sort((a: any, b: any) => b[1] - a[1])[0];
+    if (topCategory) {
+      const percentage = ((topCategory[1] as number) / filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || "0"), 0) * 100).toFixed(0);
+      insights.push({
+        icon: '🎯',
+        label: 'الفئة الأكثر إنفاقاً',
+        value: `${topCategory[0]} - ${(topCategory[1] as number).toFixed(2)} ر.س (${percentage}٪)`,
+        trend: 'neutral'
+      });
     }
 
     // Most used payment method
@@ -217,36 +269,30 @@ export default function DashboardPage() {
     const topPayment = Object.entries(paymentCount).sort((a: any, b: any) => b[1] - a[1])[0];
     if (topPayment) {
       const percentage = ((topPayment[1] as number) / filteredInvoices.length * 100).toFixed(0);
-      insights.push(`💳 طريقة الدفع الأكثر استخدامًا: ${topPayment[0]} (${percentage}٪ من المعاملات).`);
+      insights.push({
+        icon: '💳',
+        label: 'طريقة الدفع المفضلة',
+        value: `${topPayment[0]} - ${percentage}٪ من المعاملات`,
+        trend: 'neutral'
+      });
     }
 
-    // Average spending
-    const avgSpending = filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || "0"), 0) / filteredInvoices.length;
-    insights.push(`💰 متوسط قيمة الفاتورة: ${avgSpending.toFixed(2)} ر.س`);
-
-    // Most expensive category
-    const categoryTotals = filteredInvoices.reduce((acc: any, inv) => {
-      const type = inv.invoice_type || "أخرى";
-      acc[type] = (acc[type] || 0) + parseFloat(inv.total_amount || "0");
-      return acc;
-    }, {});
-    
-    const topCategory = Object.entries(categoryTotals).sort((a: any, b: any) => b[1] - a[1])[0];
-    if (topCategory) {
-      insights.push(`🎯 الفئة الأكثر إنفاقًا: ${topCategory[0]} بإجمالي ${(topCategory[1] as number).toFixed(2)} ر.س`);
-    }
-
-    // Busiest day
+    // Busiest day (with Gregorian calendar)
     const dayCount = filteredInvoices.reduce((acc: any, inv) => {
       if (!inv.invoice_date) return acc;
-      const day = new Date(inv.invoice_date).toLocaleDateString("ar-SA", { weekday: "long" });
+      const day = new Date(inv.invoice_date).toLocaleDateString("ar", { weekday: "long" });
       acc[day] = (acc[day] || 0) + 1;
       return acc;
     }, {});
     
     const busiestDay = Object.entries(dayCount).sort((a: any, b: any) => b[1] - a[1])[0];
     if (busiestDay) {
-      insights.push(`📅 اليوم الأكثر نشاطًا للشراء: ${busiestDay[0]} (${busiestDay[1]} ${busiestDay[1] === 1 ? 'فاتورة' : 'فواتير'}).`);
+      insights.push({
+        icon: '📅',
+        label: 'اليوم الأكثر نشاطاً',
+        value: `${busiestDay[0]} - ${busiestDay[1]} ${busiestDay[1] === 1 ? 'فاتورة' : 'فواتير'}`,
+        trend: 'neutral'
+      });
     }
 
     return insights;
@@ -296,12 +342,12 @@ export default function DashboardPage() {
 
   const categoryChartData = Object.values(categoryData);
 
-  // Monthly data
+  // Monthly data (Gregorian calendar)
   const monthlyData = filteredInvoices.reduce((acc: any, invoice: Invoice) => {
     if (!invoice.invoice_date) return acc;
     
     const date = new Date(invoice.invoice_date);
-    const monthKey = date.toLocaleDateString("ar-SA", { month: "short", year: "numeric" });
+    const monthKey = date.toLocaleDateString("ar", { month: "short", year: "numeric" });
     
     if (!acc[monthKey]) {
       acc[monthKey] = { month: monthKey, total: 0, count: 0, tax: 0 };
@@ -328,11 +374,11 @@ export default function DashboardPage() {
 
   const paymentChartData = Object.values(paymentMethodData);
 
-  // Day data for radar chart
+  // Day data for radar chart (Gregorian calendar)
   const dayData = filteredInvoices.reduce((acc: any, invoice: Invoice) => {
     if (!invoice.invoice_date) return acc;
     
-    const day = new Date(invoice.invoice_date).toLocaleDateString("ar-SA", { weekday: "long" });
+    const day = new Date(invoice.invoice_date).toLocaleDateString("ar", { weekday: "long" });
     
     if (!acc[day]) {
       acc[day] = { day: day, total: 0, count: 0 };
@@ -389,14 +435,33 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4"
+          className="text-center space-y-8 py-4"
           dir="rtl"
         >
-          <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-            لوحة التحكم الذكية
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            تحليلات ورؤى متقدمة عن فواتيرك ومصروفاتك
+          <div className="flex justify-center mb-4">
+            {mounted && (
+              <Image
+                src={theme === "dark" ? "/title-dashboard-dark.svg" : "/title-dashboard.svg"}
+                alt="لوحة التحكم الذكية"
+                width={600}
+                height={120}
+                className="w-full max-w-2xl h-auto"
+                priority
+              />
+            )}
+            {!mounted && (
+              <Image
+                src="/title-dashboard.svg"
+                alt="لوحة التحكم الذكية"
+                width={600}
+                height={120}
+                className="w-full max-w-2xl h-auto"
+                priority
+              />
+            )}
+          </div>
+          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+            تحليل شامل لمصاريفك وفواتيرك مع رؤى تفصيلية
           </p>
         </motion.div>
 
@@ -731,7 +796,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Smart Insights Section */}
+        {/* Smart Insights Section - Enhanced */}
         <AnimatePresence>
           {filteredInvoices.length > 0 && (
             <motion.div
@@ -740,31 +805,87 @@ export default function DashboardPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: 0.6 }}
             >
-              <Card className="border-2 border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-950/50 dark:to-pink-950/50 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-all duration-500 rounded-xl">
-                <CardHeader>
+              <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-2xl overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 pb-4">
                   <CardTitle className="flex items-center gap-3 text-xl md:text-2xl" dir="rtl">
                     <Sparkles className="w-7 h-7 text-purple-600 dark:text-purple-400 animate-pulse" />
-                    💡 رؤى ذكية متقدمة
+                    رؤى ذكية متقدمة
                   </CardTitle>
                   <CardDescription className="text-sm" dir="rtl">
-                    تحليل ذكي مُولّد من بياناتك الفعلية
+                    تحليل شامل لبياناتك المالية
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-4" dir="rtl">
-                    {smartInsights.map((insight, index) => (
-                      <motion.li
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.7 + index * 0.1 }}
-                        className="flex items-start gap-3 p-4 rounded-xl bg-white/90 dark:bg-gray-900/60 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-900/80 transition-colors duration-300 shadow-sm"
-                      >
-                        <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm md:text-base text-foreground/90 leading-relaxed">{insight}</p>
-                      </motion.li>
-                    ))}
-                  </ul>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4" dir="rtl">
+                    {smartInsights.map((insight, index) => {
+                      // Map icons to Lucide components
+                      const IconComponent = 
+                        insight.icon === '📈' || insight.icon === '📉' || insight.icon === '📊' ? Calendar :
+                        insight.icon === '🏪' ? Store :
+                        insight.icon === '💵' || insight.icon === '💰' ? DollarSign :
+                        insight.icon === '🎯' ? ShoppingBag :
+                        insight.icon === '💳' ? CreditCard :
+                        insight.icon === '📅' ? Clock :
+                        Receipt;
+                      
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 + index * 0.05 }}
+                          className={`relative p-5 rounded-xl border ${
+                            insight.trend === 'up' 
+                              ? 'bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border-orange-300 dark:border-orange-700' 
+                              : insight.trend === 'down' 
+                              ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-300 dark:border-green-700' 
+                              : 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-300 dark:border-blue-700'
+                          } backdrop-blur-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300`}
+                        >
+                          {/* Icon & Trend Indicator */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className={`p-3 rounded-lg ${
+                              insight.trend === 'up' 
+                                ? 'bg-orange-100 dark:bg-orange-900/50' 
+                                : insight.trend === 'down' 
+                                ? 'bg-green-100 dark:bg-green-900/50' 
+                                : 'bg-blue-100 dark:bg-blue-900/50'
+                            }`}>
+                              <IconComponent className={`w-6 h-6 ${
+                                insight.trend === 'up' 
+                                  ? 'text-orange-600 dark:text-orange-400' 
+                                  : insight.trend === 'down' 
+                                  ? 'text-green-600 dark:text-green-400' 
+                                  : 'text-blue-600 dark:text-blue-400'
+                              }`} />
+                            </div>
+                            {insight.trend === 'up' && (
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/50">
+                                <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                <span className="text-xs font-bold text-orange-600 dark:text-orange-400">زيادة</span>
+                              </div>
+                            )}
+                            {insight.trend === 'down' && (
+                              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/50">
+                                <TrendingDown className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                <span className="text-xs font-bold text-green-600 dark:text-green-400">انخفاض</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Label */}
+                          <h4 className="text-xs font-semibold text-foreground/60 mb-2 uppercase tracking-wide">
+                            {insight.label}
+                          </h4>
+                          
+                          {/* Value */}
+                          <p className="text-lg font-bold text-foreground leading-relaxed">
+                            {insight.value}
+                          </p>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

@@ -6,9 +6,19 @@ import { FileText, BarChart3, MessageSquare, Upload, Home, Sparkles } from "luci
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const links = [
     { href: "/", label: "الرئيسية", icon: Home },
@@ -19,29 +29,32 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl shadow-sm">
-      <div className="container mx-auto flex h-20 items-center px-4 max-w-7xl">
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-gray-800/50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl shadow-sm">
+      <div className="container mx-auto flex h-20 items-center px-6 max-w-7xl">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 ml-8">
-          <motion.div 
-            className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8dbcc7] to-[#d4a574] flex items-center justify-center shadow-lg"
-            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-            transition={{ duration: 0.3 }}
+        <Link href="/" className="flex items-center gap-4 ml-6">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
           >
-            <Sparkles className="w-6 h-6 text-white" />
+            {mounted && (
+              <Image
+                src={theme === 'dark' ? '/logo-dark.svg' : '/logo.svg'}
+                alt="مُـــفـــــوْتِــــر"
+                width={160}
+                height={45}
+                priority
+                className="h-10 w-auto"
+              />
+            )}
+            {!mounted && (
+              <div className="h-10 w-[160px] bg-transparent" />
+            )}
           </motion.div>
-          <div className="flex flex-col">
-            <span className="text-2xl font-black bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-              مُـفـــــوْتِــــر
-            </span>
-            <span className="text-[10px] text-muted-foreground -mt-1">
-              مدعوم بالذكاء الاصطناعي
-            </span>
-          </div>
         </Link>
 
         {/* Links */}
-        <div className="flex items-center gap-1 mr-auto">
+        <div className="flex items-center gap-2 mr-auto">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -53,13 +66,13 @@ export default function Navbar() {
               >
                 <motion.div
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all relative overflow-hidden",
+                    "flex items-center gap-2.5 px-5 py-3 rounded-xl text-base font-semibold transition-all relative overflow-hidden",
                     isActive
-                      ? "bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] text-white shadow-lg shadow-[#8dbcc7]/30"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      ? "bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] text-white shadow-md"
+                      : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50"
                   )}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {isActive && (
                     <motion.div
@@ -68,8 +81,8 @@ export default function Navbar() {
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <Icon className={cn("w-4 h-4 relative z-10", isActive && "text-white")} />
-                  <span className={cn("hidden sm:inline relative z-10", isActive && "text-white")}>
+                  <Icon className={cn("w-5 h-5 relative z-10", isActive && "text-white")} />
+                  <span className={cn("hidden sm:inline relative z-10 font-bold", isActive && "text-white")}>
                     {link.label}
                   </span>
                 </motion.div>
@@ -78,7 +91,7 @@ export default function Navbar() {
           })}
           
           {/* Theme Toggle */}
-          <div className="mr-2">
+          <div className="mr-3">
             <ThemeToggle />
           </div>
         </div>

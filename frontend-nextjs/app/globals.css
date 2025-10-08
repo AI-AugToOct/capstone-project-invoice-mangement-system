@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 20% 98%;
+    --foreground: 222.2 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222.2 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222.2 47% 11%;
     --primary: 192 36% 65%; /* #8dbcc7 */
     --primary-foreground: 0 0% 100%;
     --secondary: 31 50% 65%; /* #d4a574 */
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 192 36% 90%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 192 36% 92%;
     --accent-foreground: 192 36% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 192 20% 85%;
-    --input: 192 20% 90%;
+    --border: 192 20% 88%;
+    --input: 192 20% 92%;
     --ring: 192 36% 65%;
     --radius: 0.5rem;
   }
@@ -231,9 +231,9 @@ html[dir="rtl"] {
   background-size: 40px 40px;
 }
 
-/* Full-width Animated Gradient Background - Updated with new colors */
+/* Full-width Animated Gradient Background - Softer colors for eyes */
 .animate-gradient {
-  background: linear-gradient(-45deg, #e0f7fa, #fff9e6, #f0f4f8, #e8f5f1, #e0f7fa);
+  background: linear-gradient(-45deg, #f0f9ff, #fefce8, #f8fafc, #f0fdf4, #faf5ff);
   background-size: 400% 400%;
   animation: gradientShift 25s ease infinite;
 }

@@ -1,0 +1,26 @@
+<svg width="500" height="120" viewBox="0 0 500 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="titleGradientChat" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8dbcc7;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a0cad4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4a574;stop-opacity:1" />
+    </linearGradient>
+    <filter id="titleShadowChat">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <text 
+    x="250" 
+    y="75" 
+    font-family="'Cairo', 'Tajawal', 'IBM Plex Sans Arabic', sans-serif" 
+    font-size="56" 
+    font-weight="900" 
+    text-anchor="middle" 
+    fill="url(#titleGradientChat)"
+    filter="url(#titleShadowChat)"
+    letter-spacing="2">
+    الدردشة الذكية
+  </text>
+</svg>
+

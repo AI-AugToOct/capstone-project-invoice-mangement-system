@@ -16,8 +16,18 @@ import {
   Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const features = [
     {
       icon: Upload,
@@ -51,7 +61,6 @@ export default function Home() {
 
   const benefits = [
     { icon: Zap, text: "سرعة فائقة" },
-    { icon: Shield, text: "آمن ومشفر" },
     { icon: Clock, text: "يوفر وقتك" },
     { icon: TrendingUp, text: "رؤى دقيقة" },
   ];
@@ -77,11 +86,27 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="space-y-6"
           >
-            <h1 className="text-7xl md:text-8xl lg:text-9xl font-black leading-tight">
-              <span className="block bg-gradient-to-l from-[#8dbcc7] via-[#a0cad4] to-[#d4a574] bg-clip-text text-transparent">
-                مُـفـــــوْتِــــر
-              </span>
-            </h1>
+            {/* Hero Logo */}
+            <div className="flex justify-center">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              >
+                {mounted && (
+                  <Image
+                    src={theme === 'dark' ? '/logo-hero-dark.svg' : '/logo-hero.svg'}
+                    alt="مُـــفـــــوْتِــــر"
+                    width={400}
+                    height={120}
+                    priority
+                    className="w-full max-w-[400px] h-auto"
+                  />
+                )}
+                {!mounted && (
+                  <div className="w-full max-w-[400px] h-[120px] bg-transparent" />
+                )}
+              </motion.div>
+            </div>
             
             <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
               نظامك الذكي لرفع، تحليل، وإدارة جميع فواتيرك بضغطة واحدة
@@ -175,12 +200,31 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-4 mb-20"
+            className="text-center space-y-8 mb-20 py-4"
           >
-            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-              كيف يعمل؟
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <div className="flex justify-center mb-4">
+              {mounted && (
+                <Image
+                  src={theme === "dark" ? "/title-how-it-works-dark.svg" : "/title-how-it-works.svg"}
+                  alt="كيف يعمل النظام؟"
+                  width={600}
+                  height={120}
+                  className="w-full max-w-2xl h-auto"
+                  priority
+                />
+              )}
+              {!mounted && (
+                <Image
+                  src="/title-how-it-works.svg"
+                  alt="كيف يعمل النظام؟"
+                  width={600}
+                  height={120}
+                  className="w-full max-w-2xl h-auto"
+                  priority
+                />
+              )}
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
               ثلاث خطوات بسيطة للبدء
             </p>
           </motion.div>
@@ -251,12 +295,31 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-4 mb-20"
+            className="text-center space-y-8 mb-20 py-4"
           >
-            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-              مميزات قوية
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <div className="flex justify-center mb-4">
+              {mounted && (
+                <Image
+                  src={theme === "dark" ? "/title-features-dark.svg" : "/title-features.svg"}
+                  alt="مميزات قوية"
+                  width={400}
+                  height={120}
+                  className="w-full max-w-xl h-auto"
+                  priority
+                />
+              )}
+              {!mounted && (
+                <Image
+                  src="/title-features.svg"
+                  alt="مميزات قوية"
+                  width={400}
+                  height={120}
+                  className="w-full max-w-xl h-auto"
+                  priority
+                />
+              )}
+            </div>
+            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
               كل ما تحتاجه لإدارة فواتيرك بذكاء
             </p>
           </motion.div>
@@ -344,13 +407,32 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="space-y-6"
+            className="space-y-8"
           >
-            <h2 className="text-5xl md:text-7xl font-black text-white leading-tight">
-              جاهز لتنظيم فواتيرك؟
-            </h2>
-            <p className="text-2xl text-white/90 leading-relaxed">
-              ابدأ الآن في تجربة فريدة لإدارة فواتيرك بذكاء
+            <div className="flex justify-center mb-4">
+              {mounted && (
+                <Image
+                  src={theme === "dark" ? "/title-ready-dark.svg" : "/title-ready.svg"}
+                  alt="جاهز لتنظيم فواتيرك؟"
+                  width={550}
+                  height={120}
+                  className="w-full max-w-2xl h-auto brightness-0 invert"
+                  priority
+                />
+              )}
+              {!mounted && (
+                <Image
+                  src="/title-ready.svg"
+                  alt="جاهز لتنظيم فواتيرك؟"
+                  width={550}
+                  height={120}
+                  className="w-full max-w-2xl h-auto brightness-0 invert"
+                  priority
+                />
+              )}
+            </div>
+            <p className="text-xl md:text-2xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold">
+              ابدأ الآن واستمتع بتجربة سهلة وسريعة
             </p>
           </motion.div>
 

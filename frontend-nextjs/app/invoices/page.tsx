@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTheme } from "next-themes";
 
 interface Invoice {
   id: number;
@@ -41,6 +42,12 @@ export default function InvoicesPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [pdfLoading, setPdfLoading] = useState(false);
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetchInvoices();
@@ -165,16 +172,35 @@ export default function InvoicesPage() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-            الفواتير المرفوعة
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            جميع الفواتير التي قمت برفعها مع صورها
+        <div className="text-center space-y-8 py-4">
+          <div className="flex justify-center mb-4">
+            {mounted && (
+              <Image
+                src={theme === "dark" ? "/title-invoices-dark.svg" : "/title-invoices.svg"}
+                alt="الفواتير المرفوعة"
+                width={550}
+                height={120}
+                className="w-full max-w-2xl h-auto"
+                priority
+              />
+            )}
+            {!mounted && (
+              <Image
+                src="/title-invoices.svg"
+                alt="الفواتير المرفوعة"
+                width={550}
+                height={120}
+                className="w-full max-w-2xl h-auto"
+                priority
+              />
+            )}
+          </div>
+          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+            جميع الفواتير التي قمت برفعها مع تفاصيلها الكاملة
           </p>
-          <div className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20">
-            <FileText className="w-5 h-5 text-[#8dbcc7]" />
-            <span className="font-semibold">{filteredInvoices.length} من {invoices.length} فاتورة</span>
+          <div className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20">
+            <FileText className="w-6 h-6 text-[#8dbcc7]" />
+            <span className="font-bold text-lg">{filteredInvoices.length} من {invoices.length} فاتورة</span>
           </div>
         </div>
 
@@ -317,12 +343,12 @@ export default function InvoicesPage() {
                       </span>
                     </span>
                     
-                    {/* التاريخ */}
+                    {/* التاريخ - ميلادي */}
                     <span className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5" />
                       <span className="text-sm">
                         {invoice.invoice_date
-                          ? new Date(invoice.invoice_date).toLocaleDateString("ar-SA", {
+                          ? new Date(invoice.invoice_date).toLocaleDateString("ar", {
                               year: "numeric",
                               month: "long",
                               day: "numeric"
@@ -345,18 +371,22 @@ export default function InvoicesPage() {
                       </span>
                     </div>
 
-                    {/* AI Insight Preview */}
+                    {/* AI Insight - كامل */}
                     {invoice.ai_insight && invoice.ai_insight !== "Not Mentioned" && (
                       <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800">
-                        <p className="text-xs text-purple-700 dark:text-purple-300 line-clamp-2">
+                        <p className="text-xs text-purple-700 dark:text-purple-300 leading-relaxed">
                           💡 {invoice.ai_insight}
                         </p>
                       </div>
                     )}
 
-                    {/* Created Date */}
+                    {/* Created Date - ميلادي */}
                     <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-                      تم الرفع: {new Date(invoice.created_at).toLocaleDateString("ar-SA")}
+                      تم الرفع: {new Date(invoice.created_at).toLocaleDateString("ar", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                      })}
                     </div>
 
                     {/* PDF Download Button */}

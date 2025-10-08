@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Camera, FileImage, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { API_BASE } from "@/lib/utils";
 import InvoiceResultCard from "@/components/InvoiceResultCard";
 import CameraCapture from "@/components/CameraCapture";
+import Image from "next/image";
+import { useTheme } from "next-themes";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -19,10 +21,27 @@ export default function UploadPage() {
   const [result, setResult] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      if (!validTypes.includes(selectedFile.type)) {
+        toast({
+          title: "نوع ملف غير مدعوم",
+          description: "الرجاء اختيار صورة (JPG, PNG) أو ملف PDF",
+          variant: "destructive",
+        });
+        return;
+      }
+      setFile(selectedFile);
       setResult(null);
     }
   };
@@ -37,7 +56,7 @@ export default function UploadPage() {
     if (!file) {
       toast({
         title: "خطأ",
-        description: "الرجاء اختيار صورة فاتورة أولاً",
+        description: "الرجاء اختيار صورة أو ملف PDF للفاتورة أولاً",
         variant: "destructive",
       });
       return;
@@ -57,11 +76,22 @@ export default function UploadPage() {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error("فشل رفع الصورة");
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        const errorMessage = errorData.detail || uploadResponse.statusText || "فشل رفع الملف";
+        console.error("Upload error:", errorMessage);
+        throw new Error(errorMessage);
       }
 
       const uploadData = await uploadResponse.json();
       const imageUrl = uploadData.url;
+      
+      // Show message if PDF was converted
+      if (uploadData.converted_from_pdf) {
+        toast({
+          title: "تم التحويل ✅",
+          description: "تم تحويل ملف PDF إلى صورة بنجاح",
+        });
+      }
 
       setProgress(40);
       setUploading(false);
@@ -81,7 +111,10 @@ export default function UploadPage() {
       });
 
       if (!analyzeResponse.ok) {
-        throw new Error("فشل تحليل الفاتورة");
+        const errorData = await analyzeResponse.json().catch(() => ({}));
+        const errorMessage = errorData.detail || analyzeResponse.statusText || "فشل تحليل الفاتورة";
+        console.error("Analysis error:", errorMessage);
+        throw new Error(errorMessage);
       }
 
       const analyzeData = await analyzeResponse.json();
@@ -121,13 +154,32 @@ export default function UploadPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
+        className="text-center space-y-8 py-4"
       >
-        <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-l from-[#8dbcc7] to-[#d4a574] bg-clip-text text-transparent">
-          رفع وتحليل الفاتورة
-        </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400">
-          ارفع صورة الفاتورة أو التقطها مباشرة لتحليلها بالذكاء الاصطناعي
+        <div className="flex justify-center mb-4">
+          {mounted && (
+            <Image
+              src={theme === "dark" ? "/title-upload-dark.svg" : "/title-upload.svg"}
+              alt="رفع وتحليل الفاتورة"
+              width={650}
+              height={120}
+              className="w-full max-w-2xl h-auto"
+              priority
+            />
+          )}
+          {!mounted && (
+            <Image
+              src="/title-upload.svg"
+              alt="رفع وتحليل الفاتورة"
+              width={650}
+              height={120}
+              className="w-full max-w-2xl h-auto"
+              priority
+            />
+          )}
+        </div>
+        <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+          ارفع صورة أو ملف PDF للفاتورة أو التقطها مباشرة لتحليلها
         </p>
       </motion.div>
 
@@ -144,7 +196,7 @@ export default function UploadPage() {
                 اختر طريقة الرفع
               </CardTitle>
               <CardDescription>
-                يمكنك رفع صورة من جهازك أو التقاط صورة جديدة
+                يمكنك رفع صورة أو ملف PDF من جهازك أو التقاط صورة جديدة
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -159,13 +211,13 @@ export default function UploadPage() {
                     <p className="mb-2 text-sm text-muted-foreground">
                       <span className="font-semibold">انقر للرفع</span> أو اسحب الملف هنا
                     </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, JPEG (الحد الأقصى 10 ميجابايت)</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, JPEG, PDF (الحد الأقصى 10 ميجابايت)</p>
                   </div>
                   <input
                     id="file-upload"
                     type="file"
                     className="hidden"
-                    accept="image/*"
+                    accept="image/*,.pdf"
                     onChange={handleFileChange}
                   />
                 </label>

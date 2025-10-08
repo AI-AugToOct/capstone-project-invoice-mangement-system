@@ -8,4 +8,4 @@ class InvoiceEmbedding(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     invoice_id = Column(Integer, ForeignKey("invoices.id", ondelete="CASCADE"))
-    embedding = Column(Vector(384))  # 
+    embedding = Column(Vector(1536))  # OpenAI text-embedding-3-small dimensions 
