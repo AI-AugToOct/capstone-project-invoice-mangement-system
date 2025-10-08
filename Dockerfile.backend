@@ -51,9 +51,9 @@ ENV PATH="/opt/venv/bin:$PATH" \
 # Set working directory
 WORKDIR /app
 
-# Copy and set permissions for entrypoint script (before switching user)
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Copy Python entrypoint script (more reliable than shell)
+COPY docker-entrypoint.py /usr/local/bin/docker-entrypoint.py
+RUN chmod +x /usr/local/bin/docker-entrypoint.py
 
 # Copy application code
 COPY backend/ ./backend/
@@ -65,5 +65,5 @@ USER appuser
 # Expose default port (Railway will override with $PORT)
 EXPOSE 8000
 
-# Entrypoint script handles PORT variable expansion
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Python entrypoint for reliable PORT handling
+ENTRYPOINT ["python3", "/usr/local/bin/docker-entrypoint.py"]
