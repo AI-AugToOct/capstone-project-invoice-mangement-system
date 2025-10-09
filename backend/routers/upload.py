@@ -1,6 +1,7 @@
 import os
 import logging
 import io
+import requests
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -10,16 +11,26 @@ import fitz  # PyMuPDF
 # Load env vars
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_KEY")
 BUCKET_NAME = "invoices"
+
+# Use service role key for admin operations (upload/delete)
+SUPABASE_KEY = SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("❌ Missing Supabase credentials in .env")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 router = APIRouter(prefix="/upload", tags=["Upload"])
 logger = logging.getLogger("backend.upload")
+
+# Log which key is being used (masked for security)
+if SUPABASE_SERVICE_KEY:
+    logger.info(f"🔑 Using SERVICE ROLE KEY: ...{SUPABASE_SERVICE_KEY[-10:]}")
+else:
+    logger.warning(f"⚠️ Using ANON KEY (may have limited permissions): ...{SUPABASE_ANON_KEY[-10:] if SUPABASE_ANON_KEY else 'NOT SET'}")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def pdf_to_image(pdf_bytes: bytes) -> bytes:
     """
@@ -72,34 +83,47 @@ async def upload_invoice(file: UploadFile = File(...)):
             file_path = original_filename
             content_type = file.content_type or "image/jpeg"
         
-        # Upload to Supabase
+        # Upload using REST API directly (more reliable than supabase-py)
+        upload_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
+        
+        headers = {
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": content_type,
+            "x-upsert": "true"  # Overwrite if exists
+        }
+        
         try:
-            res = supabase.storage.from_(BUCKET_NAME).upload(
-                path=file_path,
-                file=file_bytes,
-                file_options={"content-type": content_type}
+            logger.info(f"📤 Uploading to: {upload_url}")
+            logger.info(f"🔑 Using key ending with: ...{SUPABASE_KEY[-10:]}")
+            
+            response = requests.post(
+                upload_url,
+                data=file_bytes,
+                headers=headers,
+                timeout=30
             )
-            logger.info(f"📤 Supabase upload response: {res}")
-        except Exception as upload_error:
-            logger.error(f"❌ Supabase upload error: {str(upload_error)}")
-            # Try to remove file if it exists and retry
-            try:
-                supabase.storage.from_(BUCKET_NAME).remove([file_path])
-                res = supabase.storage.from_(BUCKET_NAME).upload(
-                    path=file_path,
-                    file=file_bytes,
-                    file_options={"content-type": content_type}
+            
+            if response.status_code not in [200, 201]:
+                logger.error(f"❌ Upload failed: {response.status_code} - {response.text}")
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"Upload failed: {response.text}"
                 )
-            except Exception as retry_error:
-                raise HTTPException(status_code=400, detail=f"Upload failed: {str(retry_error)}")
+            
+            logger.info(f"✅ Upload successful: {response.status_code}")
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ Request error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Upload request failed: {str(e)}")
 
         # Build proper public URL
-        # Format: https://[PROJECT].supabase.co/storage/v1/object/public/invoices/filename.jpg
         public_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_NAME}/{file_path}"
-        logger.info(f"✅ Uploaded successfully: {public_url}")
+        logger.info(f"✅ File available at: {public_url}")
 
         return {"url": public_url, "converted_from_pdf": is_pdf}
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
