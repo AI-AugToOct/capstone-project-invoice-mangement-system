@@ -13,10 +13,10 @@ export default function MufawterLogo({
 }: MufawterLogoProps) {
   
   const sizeMap = {
-    sm: "text-4xl sm:text-5xl",
-    md: "text-5xl sm:text-6xl md:text-7xl",
-    lg: "text-6xl sm:text-7xl md:text-8xl",
-    xl: "text-7xl sm:text-8xl md:text-9xl"
+    sm: "text-3xl sm:text-4xl",
+    md: "text-4xl sm:text-5xl md:text-6xl",
+    lg: "text-5xl sm:text-6xl md:text-7xl",
+    xl: "text-6xl sm:text-7xl md:text-8xl"
   };
   
   const textSize = sizeMap[size];

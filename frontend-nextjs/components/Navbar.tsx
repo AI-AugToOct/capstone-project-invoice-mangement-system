@@ -28,7 +28,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
           >
             <h1 
-              className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574]"
+              className="text-xl sm:text-2xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574]"
               style={{ 
                 fontFamily: 'var(--font-cairo), Cairo, sans-serif',
                 lineHeight: '1.2',

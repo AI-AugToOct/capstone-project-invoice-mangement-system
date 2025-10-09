@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, FileImage, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Upload, Camera, FileImage, CheckCircle, XCircle, Loader2, Save, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -11,13 +11,19 @@ import { API_BASE } from "@/lib/utils";
 import InvoiceResultCard from "@/components/InvoiceResultCard";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [editableData, setEditableData] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const { toast } = useToast();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -29,7 +35,6 @@ export default function UploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      // Validate file type
       const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
       if (!validTypes.includes(selectedFile.type)) {
         toast({
@@ -41,6 +46,8 @@ export default function UploadPage() {
       }
       setFile(selectedFile);
       setResult(null);
+      setExtractedData(null);
+      setEditableData(null);
     }
   };
 
@@ -75,9 +82,9 @@ export default function UploadPage() {
       }
 
       const uploadData = await uploadResponse.json();
-      const imageUrl = uploadData.url;
+      const uploadedImageUrl = uploadData.url;
+      setImageUrl(uploadedImageUrl);
       
-      // Show message if PDF was converted
       if (uploadData.converted_from_pdf) {
         toast({
           title: "تم التحويل ✅",
@@ -88,17 +95,17 @@ export default function UploadPage() {
       setProgress(40);
       setUploading(false);
 
-      // Step 2: Analyze with VLM
+      // Step 2: Analyze with VLM (without saving to DB)
       setAnalyzing(true);
       setProgress(60);
 
-      const analyzeResponse = await fetch(`${API_BASE}/vlm/analyze`, {
+      const analyzeResponse = await fetch(`${API_BASE}/vlm/analyze-only`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          image_url: imageUrl,
+          image_url: uploadedImageUrl,
         }),
       });
 
@@ -111,11 +118,30 @@ export default function UploadPage() {
 
       const analyzeData = await analyzeResponse.json();
       setProgress(100);
-      setResult(analyzeData);
+      
+      // Set extracted data for editing
+      setExtractedData(analyzeData);
+      setEditableData({
+        invoice_number: analyzeData.output["Invoice Number"] || "",
+        date: analyzeData.output["Date"] || "",
+        vendor: analyzeData.output["Vendor"] || "",
+        tax_number: analyzeData.output["Tax Number"] || "",
+        cashier: analyzeData.output["Cashier"] || "",
+        branch: analyzeData.output["Branch"] || "",
+        phone: analyzeData.output["Phone"] || "",
+        subtotal: analyzeData.output["Subtotal"] || "0",
+        tax: analyzeData.output["Tax"] || "0",
+        total_amount: analyzeData.output["Total Amount"] || "0",
+        discounts: analyzeData.output["Discounts"] || "0",
+        payment_method: analyzeData.output["Payment Method"] || "",
+        invoice_type: analyzeData.invoice_type || "فاتورة شراء",
+        category: analyzeData.category || { ar: "أخرى", en: "Other" },
+        ai_insight: analyzeData.ai_insight || "",
+      });
 
       toast({
-        title: "نجح! ✅",
-        description: "تم تحليل الفاتورة بنجاح",
+        title: "تم التحليل! ✅",
+        description: "راجع البيانات وعدلها إذا لزم الأمر",
       });
     } catch (error: any) {
       toast({
@@ -130,15 +156,74 @@ export default function UploadPage() {
     }
   };
 
+  const handleConfirmAndSave = async () => {
+    if (!editableData || !imageUrl) {
+      toast({
+        title: "خطأ",
+        description: "البيانات غير مكتملة",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const saveResponse = await fetch(`${API_BASE}/invoices/save-analyzed`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...editableData,
+          image_url: imageUrl,
+        }),
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error("فشل حفظ الفاتورة");
+      }
+
+      const savedData = await saveResponse.json();
+      
+      toast({
+        title: "تم الحفظ! ✅",
+        description: "تم حفظ الفاتورة بنجاح في قاعدة البيانات",
+      });
+
+      // Show final result
+      setResult(savedData);
+      setExtractedData(null);
+      setEditableData(null);
+    } catch (error: any) {
+      toast({
+        title: "خطأ ❌",
+        description: error.message || "حدث خطأ أثناء حفظ الفاتورة",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleReset = () => {
     setFile(null);
     setResult(null);
     setProgress(0);
+    setExtractedData(null);
+    setEditableData(null);
+    setImageUrl("");
+  };
+
+  const handleEditChange = (field: string, value: string) => {
+    setEditableData((prev: any) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   return (
     <div className="relative min-h-screen">
-      {/* Fixed Animated Background */}
       <div className="fixed inset-0 -z-10 animate-gradient opacity-90" />
       
       <main className="container mx-auto px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32 py-12 sm:py-16 md:py-20 lg:py-24">
@@ -165,7 +250,183 @@ export default function UploadPage() {
         </p>
       </motion.div>
 
-      {!result ? (
+      {/* Show editable form if data extracted */}
+      {editableData && !result ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          dir="rtl"
+        >
+          <Card className="max-w-4xl mx-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl rounded-2xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Edit2 className="w-5 h-5" />
+                مراجعة وتعديل البيانات المستخرجة
+              </CardTitle>
+              <CardDescription>
+                راجع البيانات التالية وعدلها إذا لزم الأمر، ثم اضغط &quot;تأكيد وحفظ&quot;
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Image Preview */}
+              {imageUrl && (
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src={imageUrl} 
+                    alt="الفاتورة" 
+                    className="max-h-64 rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                  />
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>رقم الفاتورة</Label>
+                  <Input
+                    value={editableData.invoice_number}
+                    onChange={(e) => handleEditChange("invoice_number", e.target.value)}
+                    placeholder="رقم الفاتورة"
+                  />
+                </div>
+                <div>
+                  <Label>التاريخ</Label>
+                  <Input
+                    value={editableData.date}
+                    onChange={(e) => handleEditChange("date", e.target.value)}
+                    placeholder="التاريخ"
+                  />
+                </div>
+                <div>
+                  <Label>اسم المتجر</Label>
+                  <Input
+                    value={editableData.vendor}
+                    onChange={(e) => handleEditChange("vendor", e.target.value)}
+                    placeholder="اسم المتجر"
+                  />
+                </div>
+                <div>
+                  <Label>الرقم الضريبي</Label>
+                  <Input
+                    value={editableData.tax_number}
+                    onChange={(e) => handleEditChange("tax_number", e.target.value)}
+                    placeholder="الرقم الضريبي"
+                  />
+                </div>
+                <div>
+                  <Label>الكاشير</Label>
+                  <Input
+                    value={editableData.cashier}
+                    onChange={(e) => handleEditChange("cashier", e.target.value)}
+                    placeholder="اسم الكاشير"
+                  />
+                </div>
+                <div>
+                  <Label>الفرع</Label>
+                  <Input
+                    value={editableData.branch}
+                    onChange={(e) => handleEditChange("branch", e.target.value)}
+                    placeholder="الفرع"
+                  />
+                </div>
+                <div>
+                  <Label>رقم الهاتف</Label>
+                  <Input
+                    value={editableData.phone}
+                    onChange={(e) => handleEditChange("phone", e.target.value)}
+                    placeholder="رقم الهاتف"
+                  />
+                </div>
+                <div>
+                  <Label>طريقة الدفع</Label>
+                  <Input
+                    value={editableData.payment_method}
+                    onChange={(e) => handleEditChange("payment_method", e.target.value)}
+                    placeholder="طريقة الدفع"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4 border-t">
+                <h3 className="font-semibold text-lg">المبالغ المالية</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>المجموع الفرعي</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.subtotal}
+                      onChange={(e) => handleEditChange("subtotal", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label>الضريبة</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.tax}
+                      onChange={(e) => handleEditChange("tax", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label>الخصومات</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.discounts}
+                      onChange={(e) => handleEditChange("discounts", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label className="font-bold">الإجمالي النهائي</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.total_amount}
+                      onChange={(e) => handleEditChange("total_amount", e.target.value)}
+                      placeholder="0.00"
+                      className="font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleConfirmAndSave}
+                  disabled={saving}
+                  className="flex-1 gap-2"
+                  size="lg"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      جاري الحفظ...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      تأكيد وحفظ
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="gap-2"
+                  size="lg"
+                >
+                  <XCircle className="w-5 h-5" />
+                  إلغاء
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : !result ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -182,7 +443,6 @@ export default function UploadPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* File Upload */}
               <div className="space-y-4">
                 <label
                   htmlFor="file-upload"
@@ -216,7 +476,6 @@ export default function UploadPage() {
                 )}
               </div>
 
-              {/* Camera Button */}
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -243,7 +502,6 @@ export default function UploadPage() {
                 </label>
               </div>
 
-              {/* Upload Progress */}
               <AnimatePresence>
                 {(uploading || analyzing) && (
                   <motion.div
@@ -263,7 +521,6 @@ export default function UploadPage() {
                 )}
               </AnimatePresence>
 
-              {/* Submit Button */}
               <Button
                 className="w-full gap-2"
                 size="lg"
@@ -298,4 +555,3 @@ export default function UploadPage() {
     </div>
   );
 }
-

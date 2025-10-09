@@ -102,7 +102,177 @@ def normalize_category(cat):
 
 
 # ================================================================
-# 🚀 Endpoint: Analyze Invoice
+# 🔍 Endpoint: Analyze Invoice Only (No DB Save)
+# ================================================================
+@router.post("/analyze-only")
+async def analyze_vlm_only(request: VLMRequest):
+    """
+    Analyze an invoice image using VLM but DON'T save to database.
+    Returns extracted data for user review and editing.
+    """
+    try:
+        start_time = time.time()
+        logger.info(f"🔍 Analyzing image (no save): {request.image_url}")
+
+        # Same prompt as /analyze endpoint
+        if not request.prompt:
+            request.prompt = """
+أنت نموذج رؤية ولغة (Vision-Language Model) متقدم متخصص في تحليل الفواتير الذكية.
+الفواتير قد تكون بالعربية أو بالإنجليزية أو تحتوي على اللغتين، ويجب تحليل النصوص والصور بدقة.
+
+🎯 مهمتك الأساسية:
+استخرج جميع بيانات الفاتورة بشكل منظم وواضح، وفق الهيكل المحدد أدناه، والتزم بالحقول كما هي.
+
+إذا لم تجد معلومة بشكل مباشر:
+- حاول استنتاجها من الصورة أو النصوص المشابهة (مثل الشعار أو الكلمات القريبة).
+- إذا لم تتمكن نهائيًا من معرفتها، اكتب حرفيًا: "Not Mentioned".
+- لا تترك أي حقل فارغًا أو null أو undefined.
+- يجب ملء كل حقل في الـ JSON دون استثناء.
+- لا تكتب أي نص خارج كائن JSON.
+
+⚙️ هيكل النتيجة المطلوب (التزم به تمامًا):
+
+{
+  "Invoice Number": "...",
+  "Date": "...",
+  "Vendor": "...",
+  "Tax Number": "...",
+  "Cashier": "...",
+  "Branch": "...",
+  "Phone": "...",
+  "Items": [
+    {"description": "...", "quantity": 1, "unit_price": 10.0, "total": 10.0}
+  ],
+  "Subtotal": "...",
+  "Tax": "...",
+  "Total Amount": "...",
+  "Grand Total (before tax)": "...",
+  "Discounts": "...",
+  "Payment Method": "...",
+  "Amount Paid": "...",
+  "Ticket Number": "...",
+  "Category": "...",
+  "Invoice_Type": "...",
+  "AI_Insight": "..." ← يجب أن يكون بالعربية فقط ويشرح سلوك الإنفاق
+}
+
+🧠 القواعد الذكية للاستنتاج:
+
+**Category Detection (استخدم التفكير المنطقي):**
+- إذا ظهر اسم متجر يشير إلى مطعم أو مقهى (Starbucks, Dunkin, Restaurant) → Category = "Cafe" أو "Restaurant"
+- إذا كان يحتوي على كلمات مثل "Panadol" أو "صيدلية" أو "Pharmacy" → Category = "Pharmacy"
+- إذا رأيت شعارًا أو كلمات مثل "شركة الكهرباء" أو "المياه" أو "Utility" → Category = "Utility"
+- إذا ظهرت كلمات "Market" أو "تموينات" أو "سوبرماركت" → Category = "Supermarket"
+- إذا رأيت "Transport" أو "وقود" أو "تاكسي" → Category = "Transport"
+- إذا لم يظهر أي مؤشر واضح → Category = "Other"
+
+القائمة الكاملة للـ Categories المسموحة فقط:
+["Cafe", "Restaurant", "Supermarket", "Pharmacy", "Clothing", "Electronics", "Utility", "Education", "Health", "Transport", "Delivery", "Other"]
+
+**Invoice_Type Detection (استخدم الكلمات المفتاحية):**
+- إذا ظهر رقم ضريبي أو "VAT Invoice" أو "فاتورة ضريبية" → Invoice_Type = "فاتورة ضريبية"
+- إذا كان النص يحتوي على "ضمان" أو "Warranty" أو "Guarantee" → Invoice_Type = "فاتورة ضمان"
+- إذا ظهر "صيانة" أو "Maintenance" أو "Repair" → Invoice_Type = "فاتورة صيانة"
+- إذا ظهر "Purchase" أو "Receipt" أو "Bill" → Invoice_Type = "فاتورة شراء"
+- إذا لم يظهر أي مؤشر واضح → Invoice_Type = "فاتورة شراء" (الافتراضي)
+
+✳️ النتيجة يجب أن تكون بالعربية فقط: "فاتورة شراء" أو "فاتورة ضمان" أو "فاتورة صيانة" أو "فاتورة ضريبية" أو "أخرى"
+
+**استنتاج الحقول المفقودة:**
+- إذا لم يظهر "Invoice Number" → حاول البحث عن أي رقم قريب من كلمة "Invoice" أو "رقم"
+- إذا لم يظهر "Date" → ابحث عن أي تاريخ في الصورة
+- إذا لم يظهر "Vendor" → استخدم أي اسم ظاهر بشكل بارز في أعلى الفاتورة
+- إذا لم تجد "Payment Method" → حاول الاستنتاج من سياق الفاتورة (بطاقة، نقدي، إلخ)
+- إذا لم تجد أي معلومة نهائيًا → اكتب "Not Mentioned"
+
+**AI_Insight (مهم جداً):**
+- يجب أن يكون بالعربية فقط
+- اكتب 2-3 جمل تصف الشراء وسلوك الإنفاق
+- مثال: "هذه عملية شراء من مطعم وجبات سريعة، المبلغ معتدل ويدل على استهلاك يومي. تم الدفع ببطاقة ائتمانية."
+
+**Formatting Rules:**
+- استخدم نفس التاريخ كما هو في الفاتورة دون تعديل
+- أعد الأرقام كما تظهر بدون تنسيق جديد
+- ممنوع كتابة Markdown أو ```json``` أو أي رموز إضافية
+- أخرج كائن JSON واحد صحيح فقط، بدون أي نص قبله أو بعده
+
+❌ ممنوع تمامًا:
+- ترك حقول فارغة أو null
+- كتابة شرح أو تعليق خارج JSON
+- استخدام Markdown
+- ترك أي حقل بدون قيمة
+
+✅ مطلوب دائمًا:
+- JSON كامل بجميع الحقول
+- استخدام "Not Mentioned" للحقول غير الواضحة
+- استنتاج ذكي قبل وضع "Not Mentioned"
+- AI_Insight بالعربية دائمًا
+"""
+
+        # Send to FriendliAI
+        headers = {
+            "Authorization": f"Bearer {FRIENDLI_TOKEN}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "model": FRIENDLI_MODEL_ID,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": request.prompt},
+                        {"type": "image_url", "image_url": {"url": request.image_url}},
+                    ],
+                }
+            ],
+            "max_tokens": 16384,
+            "temperature": 0.6,
+            "top_p": 0.9,
+        }
+
+        response = requests.post(FRIENDLI_URL, headers=headers, json=payload)
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Friendli API error: {response.text}")
+
+        data = response.json()
+        raw_output = data["choices"][0]["message"]["content"].strip()
+
+        if raw_output.startswith("```"):
+            raw_output = raw_output.strip("`").replace("json", "", 1).strip()
+
+        try:
+            parsed = json.loads(raw_output)
+        except Exception as e:
+            logger.error(f"⚠️ JSON parse failed: {e}")
+            return {"status": "error", "raw_output": raw_output}
+
+        # Normalize data
+        category_raw = safe_get(parsed, "Category", "category")
+        normalized_category = normalize_category(category_raw)
+        ai_insight = safe_get(parsed, "AI_Insight", "ai_insight", default="Not Mentioned")
+        invoice_type_from_vlm = safe_get(parsed, "Invoice_Type", "invoice_type", default="فاتورة شراء")
+        
+        elapsed = round(time.time() - start_time, 2)
+        logger.info(f"✅ Analysis completed in {elapsed}s (no save)")
+
+        # Return data for frontend to display for editing
+        return {
+            "status": "success",
+            "category": normalized_category,
+            "invoice_type": invoice_type_from_vlm,
+            "ai_insight": ai_insight,
+            "output": parsed,
+            "time_taken_seconds": elapsed,
+        }
+
+    except Exception as e:
+        logger.error(f"❌ VLM analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ================================================================
+# 🚀 Endpoint: Analyze Invoice (Original - Saves to DB)
 # ================================================================
 @router.post("/analyze")
 async def analyze_vlm(request: VLMRequest, db: Session = Depends(get_db)):
