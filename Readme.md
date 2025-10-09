@@ -69,11 +69,11 @@ graph TB
         FASTAPI[⚡ FastAPI]
         ROUTERS[🔀 Routers]
         
-        ROUTERS --> R_UPLOAD[/upload]
-        ROUTERS --> R_VLM[/vlm]
-        ROUTERS --> R_INV[/invoices]
-        ROUTERS --> R_CHAT[/chat]
-        ROUTERS --> R_DASH[/dashboard]
+        ROUTERS --> R_UPLOAD["📤 Upload API"]
+        ROUTERS --> R_VLM["🧠 VLM API"]
+        ROUTERS --> R_INV["📋 Invoice API"]
+        ROUTERS --> R_CHAT["💬 Chat API"]
+        ROUTERS --> R_DASH["📊 Dashboard API"]
     end
     
     subgraph "Database - Supabase"
