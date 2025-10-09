@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import Base, engine
-from backend.routers import vlm, upload, chat, dashboard, invoices
+from backend.routers import vlm, upload, chat, dashboard, invoices, items
 
 # --------------------------
 # Logging setup
@@ -59,6 +59,7 @@ app.include_router(vlm.router)
 app.include_router(chat.router)
 app.include_router(dashboard.router)
 app.include_router(invoices.router)
+app.include_router(items.router)
 
 # --------------------------
 # Startup event
