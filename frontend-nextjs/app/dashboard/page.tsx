@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import {
   BarChart3,
@@ -82,13 +81,17 @@ export default function DashboardPage() {
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   
-  const { toast } = useToast();
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   useEffect(() => {
     fetchData();

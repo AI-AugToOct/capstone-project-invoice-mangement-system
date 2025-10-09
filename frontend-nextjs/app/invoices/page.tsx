@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTheme } from "next-themes";
 
 interface Invoice {
   id: number;
@@ -41,13 +40,17 @@ export default function InvoicesPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [pdfLoading, setPdfLoading] = useState(false);
-  const { toast } = useToast();
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   useEffect(() => {
     fetchInvoices();

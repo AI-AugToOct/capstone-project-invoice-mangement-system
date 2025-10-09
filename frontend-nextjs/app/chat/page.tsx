@@ -11,7 +11,6 @@ import { API_BASE } from "@/lib/utils";
 import Image from "next/image";
 import ImageModal from "@/components/ImageModal";
 import { downloadInvoiceAsPDF } from "@/lib/pdfUtils";
-import { useTheme } from "next-themes";
 
 interface Invoice {
   id: number;
@@ -48,13 +47,17 @@ export default function ChatPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   useEffect(() => {
     scrollToBottom();
