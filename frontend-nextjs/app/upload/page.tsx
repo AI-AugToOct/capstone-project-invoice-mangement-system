@@ -148,7 +148,10 @@ export default function UploadPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-3 sm:space-y-4 md:space-y-6 py-2 sm:py-4"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+        <h1 
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4"
+          style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+        >
           رفع وتحليل الفاتورة
         </h1>
         <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">

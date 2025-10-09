@@ -14,6 +14,7 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     startCamera();
@@ -24,6 +25,8 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   const startCamera = async () => {
     try {
+      setLoading(true);
+      
       // Enhanced constraints for better mobile support
       const constraints = {
         video: {
@@ -39,15 +42,26 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        // Ensure video plays on iOS Safari
-        videoRef.current.setAttribute('playsinline', '');
-        videoRef.current.play().catch(err => {
-          console.error("Video play error:", err);
-          setError("فشل تشغيل الكاميرا. حاول مرة أخرى.");
-        });
+        
+        // Wait for video to load before playing
+        videoRef.current.onloadedmetadata = () => {
+          if (videoRef.current) {
+            videoRef.current.play()
+              .then(() => {
+                setLoading(false);
+              })
+              .catch(err => {
+                console.error("Video play error:", err);
+                setError("فشل تشغيل الكاميرا. حاول مرة أخرى.");
+                setLoading(false);
+              });
+          }
+        };
       }
     } catch (err: any) {
       console.error("Camera error:", err);
+      setLoading(false);
+      
       if (err.name === 'NotAllowedError') {
         setError("الرجاء السماح بالوصول إلى الكاميرا من إعدادات المتصفح.");
       } else if (err.name === 'NotFoundError') {
@@ -105,18 +119,30 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative bg-black">
+      <div className="relative bg-black aspect-video">
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-[#8dbcc7] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+              <p className="text-white text-sm">جاري تحميل الكاميرا...</p>
+            </div>
+          </div>
+        )}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-auto max-h-[60vh] object-cover rounded-t-lg"
-          style={{ minHeight: '300px' }}
+          className={`w-full h-full object-cover rounded-t-lg ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         />
         <canvas ref={canvasRef} className="hidden" />
         <div className="p-4 bg-background">
-          <Button onClick={capturePhoto} className="w-full gap-2" size="lg">
+          <Button 
+            onClick={capturePhoto} 
+            className="w-full gap-2" 
+            size="lg"
+            disabled={loading}
+          >
             <Camera className="w-5 h-5" />
             التقاط الصورة
           </Button>
