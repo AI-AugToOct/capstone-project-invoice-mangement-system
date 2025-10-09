@@ -71,26 +71,27 @@ export default function Home() {
       {/* Hero Section */}
       <section 
         dir="rtl"
-        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-6 md:px-16 lg:px-24 xl:px-32 py-24 overflow-hidden scroll-smooth"
+        className="relative w-full min-h-screen flex flex-col justify-center items-center text-center px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32 py-16 sm:py-20 md:py-24 overflow-hidden scroll-smooth"
         style={{ scrollSnapAlign: 'start' }}
       >
         {/* Animated Gradient Background */}
         <div className="fixed inset-0 -z-10 animate-gradient opacity-90" />
 
-        <div className="relative z-10 max-w-6xl space-y-10">
+        <div className="relative z-10 max-w-6xl w-full space-y-6 sm:space-y-8 md:space-y-10">
           
           {/* Main Heading */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
             {/* Hero Logo */}
-            <div className="flex justify-center">
+            <div className="flex justify-center px-4">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
+                className="w-full max-w-[280px] sm:max-w-[350px] md:max-w-[400px]"
               >
                 {mounted && (
                   <Image
@@ -99,16 +100,16 @@ export default function Home() {
                     width={400}
                     height={120}
                     priority
-                    className="w-full max-w-[400px] h-auto"
+                    className="w-full h-auto"
                   />
                 )}
                 {!mounted && (
-                  <div className="w-full max-w-[400px] h-[120px] bg-transparent" />
+                  <div className="w-full aspect-[400/120] bg-transparent" />
                 )}
               </motion.div>
             </div>
             
-            <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto px-4">
               نظامك الذكي لرفع، تحليل، وإدارة جميع فواتيرك بضغطة واحدة
             </p>
           </motion.div>
@@ -118,7 +119,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-4"
+            className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 px-4"
           >
             {benefits.map((benefit, index) => (
               <motion.div
@@ -127,10 +128,10 @@ export default function Home() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 px-5 py-3 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20 text-sm sm:text-base"
               >
-                <benefit.icon className="w-5 h-5 text-[#8dbcc7]" />
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
+                <benefit.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#8dbcc7] flex-shrink-0" />
+                <span className="font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap">
                   {benefit.text}
                 </span>
               </motion.div>
@@ -142,26 +143,26 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-5 justify-center pt-6"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-5 justify-center pt-4 sm:pt-6 px-4"
           >
-            <Link href="/upload">
+            <Link href="/upload" className="w-full sm:w-auto">
               <Button 
                 size="lg"
-                className="group gap-3 text-xl px-12 py-8 bg-gradient-to-l from-[#8dbcc7] to-[#6fa3b0] hover:from-[#7aabb8] hover:to-[#5f92a0] text-white font-bold shadow-2xl hover:shadow-[#8dbcc7]/50 rounded-2xl transition-all duration-300 hover:scale-105"
+                className="w-full sm:w-auto group gap-2 sm:gap-3 text-base sm:text-lg md:text-xl px-6 sm:px-10 md:px-12 py-6 sm:py-7 md:py-8 bg-gradient-to-l from-[#8dbcc7] to-[#6fa3b0] hover:from-[#7aabb8] hover:to-[#5f92a0] text-white font-bold shadow-2xl hover:shadow-[#8dbcc7]/50 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-105"
               >
-                <Upload className="w-7 h-7" />
+                <Upload className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 <span>رفع فاتورة</span>
-                <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
               </Button>
             </Link>
             
-            <Link href="/dashboard">
+            <Link href="/dashboard" className="w-full sm:w-auto">
               <Button 
                 size="lg"
                 variant="outline"
-                className="gap-3 text-xl px-12 py-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-2 border-[#8dbcc7] text-[#8dbcc7] hover:bg-[#8dbcc7]/10 font-bold shadow-xl rounded-2xl transition-all duration-300"
+                className="w-full sm:w-auto gap-2 sm:gap-3 text-base sm:text-lg md:text-xl px-6 sm:px-10 md:px-12 py-6 sm:py-7 md:py-8 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-2 border-[#8dbcc7] text-[#8dbcc7] hover:bg-[#8dbcc7]/10 font-bold shadow-xl rounded-xl sm:rounded-2xl transition-all duration-300"
               >
-                <BarChart3 className="w-7 h-7" />
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
                 <span>شاهد التحليلات</span>
               </Button>
             </Link>
@@ -192,7 +193,7 @@ export default function Home() {
       {/* How It Works Section */}
       <section 
         dir="rtl"
-        className="relative w-full py-20 md:py-24 px-6 md:px-16 lg:px-24 xl:px-32"
+        className="relative w-full py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32"
       >
         <div className="max-w-7xl mx-auto">
           
@@ -200,16 +201,16 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-8 mb-20 py-4"
+            className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
           >
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-2 sm:mb-4 px-4">
               {mounted && (
                 <Image
                   src={theme === "dark" ? "/title-how-it-works-dark.svg" : "/title-how-it-works.svg"}
                   alt="كيف يعمل النظام؟"
                   width={600}
                   height={120}
-                  className="w-full max-w-2xl h-auto"
+                  className="w-full max-w-[280px] sm:max-w-md md:max-w-xl lg:max-w-2xl h-auto"
                   priority
                 />
               )}
@@ -219,17 +220,17 @@ export default function Home() {
                   alt="كيف يعمل النظام؟"
                   width={600}
                   height={120}
-                  className="w-full max-w-2xl h-auto"
+                  className="w-full max-w-[280px] sm:max-w-md md:max-w-xl lg:max-w-2xl h-auto"
                   priority
                 />
               )}
             </div>
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
               ثلاث خطوات بسيطة للبدء
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 step: "1",

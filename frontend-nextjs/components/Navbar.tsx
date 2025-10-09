@@ -30,12 +30,13 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200/50 dark:border-gray-800/50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl shadow-sm">
-      <div className="container mx-auto flex h-20 items-center px-6 max-w-7xl">
+      <div className="container mx-auto flex h-16 sm:h-18 md:h-20 items-center px-3 sm:px-4 md:px-6 max-w-7xl">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-4 ml-6">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 md:gap-4 ml-2 sm:ml-4 md:ml-6 flex-shrink-0">
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
+            className="w-[120px] sm:w-[140px] md:w-[160px]"
           >
             {mounted && (
               <Image
@@ -44,17 +45,17 @@ export default function Navbar() {
                 width={160}
                 height={45}
                 priority
-                className="h-10 w-auto"
+                className="h-8 sm:h-9 md:h-10 w-auto"
               />
             )}
             {!mounted && (
-              <div className="h-10 w-[160px] bg-transparent" />
+              <div className="h-8 sm:h-9 md:h-10 w-full bg-transparent" />
             )}
           </motion.div>
         </Link>
 
         {/* Links */}
-        <div className="flex items-center gap-2 mr-auto">
+        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 mr-auto">
           {links.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -66,7 +67,7 @@ export default function Navbar() {
               >
                 <motion.div
                   className={cn(
-                    "flex items-center gap-2.5 px-5 py-3 rounded-xl text-base font-semibold transition-all relative overflow-hidden",
+                    "flex items-center gap-1.5 sm:gap-2 md:gap-2.5 px-2 sm:px-3 md:px-5 py-2 sm:py-2.5 md:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all relative overflow-hidden",
                     isActive
                       ? "bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] text-white shadow-md"
                       : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50"
@@ -77,12 +78,12 @@ export default function Navbar() {
                   {isActive && (
                     <motion.div
                       layoutId="navbar-indicator"
-                      className="absolute inset-0 bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] rounded-xl"
+                      className="absolute inset-0 bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] rounded-lg sm:rounded-xl"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <Icon className={cn("w-5 h-5 relative z-10", isActive && "text-white")} />
-                  <span className={cn("hidden sm:inline relative z-10 font-bold", isActive && "text-white")}>
+                  <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5 relative z-10 flex-shrink-0", isActive && "text-white")} />
+                  <span className={cn("hidden sm:inline relative z-10 font-bold text-sm md:text-base", isActive && "text-white")}>
                     {link.label}
                   </span>
                 </motion.div>
@@ -91,7 +92,7 @@ export default function Navbar() {
           })}
           
           {/* Theme Toggle */}
-          <div className="mr-3">
+          <div className="mr-1 sm:mr-2 md:mr-3">
             <ThemeToggle />
           </div>
         </div>
