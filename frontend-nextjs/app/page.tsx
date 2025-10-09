@@ -93,7 +93,7 @@ export default function Home() {
               transition={{ duration: 0.3 }}
               className="px-4"
             >
-              <MufawterLogo size="xl" showEnglish={false} />
+              <MufawterLogo size="xl" />
             </motion.div>
             
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto px-4">
@@ -259,7 +259,7 @@ export default function Home() {
       {/* Features Section */}
       <section 
         dir="rtl"
-        className="relative w-full py-20 md:py-24 px-6 md:px-16 lg:px-24 xl:px-32"
+        className="relative w-full py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900"
       >
         <div className="max-w-7xl mx-auto">
           
@@ -267,7 +267,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
+            className="text-center space-y-3 sm:space-y-4 md:space-y-6 mb-10 sm:mb-12 md:mb-16 py-2 sm:py-4"
           >
             <h2 
               className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4"
@@ -280,7 +280,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -289,27 +289,31 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -10 }}
+                className="w-full"
               >
-                <Link href={feature.href}>
-                  <div className="group h-full p-8 rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-0 shadow-xl hover:shadow-2xl transition-all duration-500 cursor-pointer">
+                <Link href={feature.href} className="block h-full">
+                  <div className="group h-full p-6 sm:p-8 rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-2xl border border-gray-100 dark:border-gray-700 transition-all duration-500 cursor-pointer">
                     
                     {/* Icon */}
-                    <div className={`w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                      <feature.icon className="w-8 h-8 text-white" />
+                    <div className={`w-14 h-14 sm:w-16 sm:h-16 mb-4 sm:mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                      <feature.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                     </div>
 
                     {/* Content */}
-                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3 group-hover:text-[#8dbcc7] transition-colors">
+                    <h3 
+                      className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 dark:text-white mb-2 sm:mb-3 group-hover:text-[#8dbcc7] transition-colors leading-tight"
+                      style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+                    >
                       {feature.title}
                     </h3>
-                    <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                       {feature.description}
                     </p>
 
                     {/* Arrow */}
-                    <div className="flex items-center gap-2 mt-6 text-[#8dbcc7] font-bold opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
+                    <div className="flex items-center gap-2 mt-4 sm:mt-6 text-[#8dbcc7] font-bold text-sm opacity-0 group-hover:opacity-100 transition-all">
                       <span>تعرف أكثر</span>
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </Link>
