@@ -60,17 +60,48 @@ def save_analyzed_invoice(data: EditedInvoiceData, db: Session = Depends(get_db)
         # Parse date
         def parse_date(value):
             if not value or str(value).lower() in ["not mentioned", "none", "null", ""]:
+                logger.warning(f"⚠️ Date value is empty or 'not mentioned': {value}")
                 return None
-            formats = ["%d/%m/%Y", "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"]
+            
+            # Log the incoming date value
+            logger.info(f"📅 Parsing date: {value} (type: {type(value)})")
+            
+            # Convert to string if needed
+            value_str = str(value).strip()
+            
+            # List of common date formats
+            formats = [
+                "%d/%m/%Y",      # 09/10/2025
+                "%Y-%m-%d",      # 2025-10-09
+                "%m/%d/%Y",      # 10/09/2025
+                "%d-%m-%Y",      # 09-10-2025
+                "%Y/%m/%d",      # 2025/10/09
+                "%d %B %Y",      # 09 October 2025
+                "%d %b %Y",      # 09 Oct 2025
+                "%B %d, %Y",     # October 09, 2025
+                "%b %d, %Y",     # Oct 09, 2025
+                "%d.%m.%Y",      # 09.10.2025
+            ]
+            
             for fmt in formats:
                 try:
-                    return datetime.strptime(value.strip(), fmt)
+                    parsed = datetime.strptime(value_str, fmt)
+                    logger.info(f"✅ Date parsed successfully using format '{fmt}': {parsed}")
+                    return parsed
                 except:
                     continue
+            
+            # Try ISO format
             try:
-                return datetime.fromisoformat(value.strip())
+                parsed = datetime.fromisoformat(value_str)
+                logger.info(f"✅ Date parsed successfully using ISO format: {parsed}")
+                return parsed
             except:
-                return None
+                pass
+            
+            # If all parsing attempts fail
+            logger.error(f"❌ Failed to parse date: {value}")
+            return None
         
         # Convert string numbers to float
         def safe_float(value):
@@ -82,6 +113,7 @@ def save_analyzed_invoice(data: EditedInvoiceData, db: Session = Depends(get_db)
                 return 0.0
         
         parsed_date = parse_date(data.date)
+        logger.info(f"📆 Final parsed date for saving: {parsed_date}")
         
         # Create invoice
         invoice = Invoice(

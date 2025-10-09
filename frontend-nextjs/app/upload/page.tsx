@@ -260,6 +260,9 @@ export default function UploadPage() {
         return numeric || defaultVal;
       };
       
+      // Log extracted date from VLM
+      console.log("📅 Date extracted from VLM:", analyzeData.output["Date"]);
+      
       setEditableData({
         invoice_number: getCleanValue(analyzeData.output["Invoice Number"]),
         date: getCleanValue(analyzeData.output["Date"]),
@@ -326,16 +329,21 @@ export default function UploadPage() {
     try {
       setSaving(true);
 
+      // Log data being sent for debugging
+      const dataToSend = {
+        ...editableData,
+        image_url: imageUrl,
+        items: items, // إضافة Items
+      };
+      console.log("📤 Sending invoice data:", dataToSend);
+      console.log("📅 Date value being sent:", editableData.date);
+
       const saveResponse = await fetch(`${API_BASE}/invoices/save-analyzed`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...editableData,
-          image_url: imageUrl,
-          items: items, // إضافة Items
-        }),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!saveResponse.ok) {

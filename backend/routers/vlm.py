@@ -56,20 +56,48 @@ def safe_float(value, default=0.0):
 def parse_date(value):
     """Try to parse multiple date formats safely."""
     if not value or str(value).lower() in ["not mentioned", "none", "null", ""]:
+        logger.warning(f"⚠️ Date value is empty or 'not mentioned': {value}")
         return None
-
+    
+    # Log the incoming date value
+    logger.info(f"📅 VLM - Parsing date: {value} (type: {type(value)})")
+    
+    # Convert to string if needed
+    value_str = str(value).strip()
+    
+    # List of common date formats
     formats = [
-        "%d/%m/%Y", "%Y-%m-%d", "%m/%d/%Y", "%d-%m-%Y", "%Y/%m/%d"
+        "%d/%m/%Y",      # 09/10/2025
+        "%Y-%m-%d",      # 2025-10-09
+        "%m/%d/%Y",      # 10/09/2025
+        "%d-%m-%Y",      # 09-10-2025
+        "%Y/%m/%d",      # 2025/10/09
+        "%d %B %Y",      # 09 October 2025
+        "%d %b %Y",      # 09 Oct 2025
+        "%B %d, %Y",     # October 09, 2025
+        "%b %d, %Y",     # Oct 09, 2025
+        "%d.%m.%Y",      # 09.10.2025
     ]
+    
     for fmt in formats:
         try:
-            return datetime.strptime(value.strip(), fmt)
+            parsed = datetime.strptime(value_str, fmt)
+            logger.info(f"✅ VLM - Date parsed successfully using format '{fmt}': {parsed}")
+            return parsed
         except Exception:
             continue
+    
+    # Try ISO format
     try:
-        return datetime.fromisoformat(value.strip())
+        parsed = datetime.fromisoformat(value_str)
+        logger.info(f"✅ VLM - Date parsed successfully using ISO format: {parsed}")
+        return parsed
     except Exception:
-        return None
+        pass
+    
+    # If all parsing attempts fail
+    logger.error(f"❌ VLM - Failed to parse date: {value}")
+    return None
 
 
 # ================================================================
@@ -134,7 +162,7 @@ async def analyze_vlm_only(request: VLMRequest):
 
 {
   "Invoice Number": "...",
-  "Date": "...",
+  "Date": "DD/MM/YYYY",  ← يجب أن يكون بصيغة 09/10/2025
   "Vendor": "...",
   "Tax Number": "...",
   "Cashier": "...",
@@ -191,7 +219,8 @@ async def analyze_vlm_only(request: VLMRequest):
 - مثال: "هذه عملية شراء من مطعم وجبات سريعة، المبلغ معتدل ويدل على استهلاك يومي. تم الدفع ببطاقة ائتمانية."
 
 **Formatting Rules:**
-- استخدم نفس التاريخ كما هو في الفاتورة دون تعديل
+- استخدم نفس التاريخ كما هو في الفاتورة بصيغة DD/MM/YYYY (مثل: 09/10/2025)
+- إذا كان التاريخ بصيغة أخرى، حوّله إلى DD/MM/YYYY
 - أعد الأرقام كما تظهر بدون تنسيق جديد
 - ممنوع كتابة Markdown أو ```json``` أو أي رموز إضافية
 - أخرج كائن JSON واحد صحيح فقط، بدون أي نص قبله أو بعده
@@ -306,7 +335,7 @@ async def analyze_vlm(request: VLMRequest, db: Session = Depends(get_db)):
 
 {
   "Invoice Number": "...",
-  "Date": "...",
+  "Date": "DD/MM/YYYY",  ← يجب أن يكون بصيغة 09/10/2025
   "Vendor": "...",
   "Tax Number": "...",
   "Cashier": "...",
@@ -363,7 +392,8 @@ async def analyze_vlm(request: VLMRequest, db: Session = Depends(get_db)):
 - مثال: "هذه عملية شراء من مطعم وجبات سريعة، المبلغ معتدل ويدل على استهلاك يومي. تم الدفع ببطاقة ائتمانية."
 
 **Formatting Rules:**
-- استخدم نفس التاريخ كما هو في الفاتورة دون تعديل
+- استخدم نفس التاريخ كما هو في الفاتورة بصيغة DD/MM/YYYY (مثل: 09/10/2025)
+- إذا كان التاريخ بصيغة أخرى، حوّله إلى DD/MM/YYYY
 - أعد الأرقام كما تظهر بدون تنسيق جديد
 - ممنوع كتابة Markdown أو ```json``` أو أي رموز إضافية
 - أخرج كائن JSON واحد صحيح فقط، بدون أي نص قبله أو بعده
