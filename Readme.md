@@ -1129,27 +1129,11 @@ GROUP BY payment_method;
 
 ## 👥 Team
 
-This project was developed by a talented team of computer science students:
-
 <div align="center">
 
-| Name | Role | GitHub |
-|------|------|--------|
-| **Maryam** | Full Stack Developer | [@maryam](https://github.com/maryam) |
-| **Lames** | AI/ML Engineer | [@lames](https://github.com/lames) |
-| **Saif** | Backend Developer | [@saif](https://github.com/saif) |
-| **Ruwaa** | Frontend Developer | [@ruwaa](https://github.com/ruwaa) |
+**Maryam • Lames • Saif • Ruwaa**
 
-### 🎓 **University Project**
-**Institution**: King Abdulaziz University  
-**Department**: Computer Science  
-**Course**: Capstone Project 2024-2025  
-**Supervisor**: Dr. [Supervisor Name]
-
-### 📧 **Contact the Team**
-- 📩 **Email**: team@mufawter.com
-- 💬 **Discord**: [Mufawter Team Server](https://discord.gg/mufawter)
-- 🐦 **Twitter**: [@MufawterApp](https://twitter.com/MufawterApp)
+### 🎓 Tuwaiq Academy Capstone Project 2024-2025
 
 </div>
 
@@ -1179,7 +1163,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Supabase** for the excellent PostgreSQL + Storage + pgvector solution
 - **OpenAI** for GPT-4o-mini and text-embedding-3-small APIs
 - **shadcn/ui** for beautiful React components
-- **King Abdulaziz University** for supporting this capstone project
+- **Tuwaiq Academy** for supporting this capstone project
 
 ---
 
@@ -1196,18 +1180,5 @@ This is a **final capstone project** demonstrating advanced AI integration, mode
 ![Database](https://img.shields.io/badge/Database-PostgreSQL-336791)
 ![Deployment](https://img.shields.io/badge/Deployment-Live-success)
 
-**Backend**: 8,000+ lines of Python  
-**Frontend**: 7,000+ lines of TypeScript/TSX  
-**AI Integration**: 3 state-of-the-art models  
-**Database**: 5 tables with pgvector support  
-**API Endpoints**: 20+ RESTful endpoints
-
 ---
 
-**Made with ❤️ for the Arabic-speaking community**
-
-[⬆ Back to Top](#-mufawter-مفوتر)
-
-**© 2024-2025 Mufawter Team - King Abdulaziz University**
-
-</div>
