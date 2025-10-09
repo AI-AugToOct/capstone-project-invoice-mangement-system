@@ -91,10 +91,21 @@ export default function Home() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
+                className="w-full max-w-[240px] sm:max-w-[320px] md:max-w-[400px]"
               >
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight tracking-tight">
-                  مُـفـــوْتِــر
-                </h1>
+                {mounted && (
+                  <Image
+                    src={theme === 'dark' ? '/logo-hero-dark.svg' : '/logo-hero.svg'}
+                    alt="مُـفـــوْتِــر"
+                    width={400}
+                    height={120}
+                    priority
+                    className="w-full h-auto"
+                  />
+                )}
+                {!mounted && (
+                  <div className="w-full aspect-[400/120] bg-transparent" />
+                )}
               </motion.div>
             </div>
             
@@ -192,10 +203,10 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
               كيف يعمل النظام؟
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">
               ثلاث خطوات بسيطة للبدء
             </p>
           </motion.div>
@@ -268,10 +279,10 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
               مميزات قوية
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">
               كل ما تحتاجه لإدارة فواتيرك بذكاء
             </p>
           </motion.div>
@@ -361,10 +372,10 @@ export default function Home() {
             viewport={{ once: true }}
             className="space-y-6 sm:space-y-8"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight px-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight px-4">
               جاهز لتنظيم فواتيرك؟
             </h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold px-4">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold px-4">
               ابدأ الآن واستمتع بتجربة سهلة وسريعة
             </p>
           </motion.div>

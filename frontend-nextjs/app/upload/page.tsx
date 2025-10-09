@@ -146,12 +146,12 @@ export default function UploadPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4 sm:space-y-6 md:space-y-8 py-2 sm:py-4"
+        className="text-center space-y-3 sm:space-y-4 md:space-y-6 py-2 sm:py-4"
       >
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
           رفع وتحليل الفاتورة
         </h1>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">
           ارفع صورة أو ملف PDF للفاتورة أو التقطها مباشرة لتحليلها
         </p>
       </motion.div>
