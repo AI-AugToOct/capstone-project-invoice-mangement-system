@@ -15,6 +15,13 @@ router = APIRouter(prefix="/invoices", tags=["Invoices"])
 logger = logging.getLogger(__name__)
 
 
+# Schema for item data
+class ItemData(BaseModel):
+    description: str = ""
+    quantity: float = 1
+    unit_price: float = 0
+    total: float = 0
+
 # Schema for edited invoice data
 class EditedInvoiceData(BaseModel):
     invoice_number: str
@@ -33,6 +40,7 @@ class EditedInvoiceData(BaseModel):
     category: dict = {"ar": "أخرى", "en": "Other"}
     ai_insight: str = ""
     image_url: str = ""
+    items: list[ItemData] = []  # إضافة Items
 
 # ------------------------------------------------------------
 # ✅ POST /invoices/save-analyzed → Save edited invoice data
@@ -95,6 +103,22 @@ def save_analyzed_invoice(data: EditedInvoiceData, db: Session = Depends(get_db)
         db.add(invoice)
         db.commit()
         db.refresh(invoice)
+        
+        # ✅ Save Items if provided
+        if data.items and len(data.items) > 0:
+            for item_data in data.items:
+                # تجاهل Items الفارغة
+                if item_data.description.strip():
+                    item = Item(
+                        invoice_id=invoice.id,
+                        description=item_data.description,
+                        quantity=int(item_data.quantity),
+                        unit_price=float(item_data.unit_price),
+                        total=float(item_data.total),
+                    )
+                    db.add(item)
+            db.commit()
+            logger.info(f"✅ Saved {len(data.items)} items for invoice {invoice.id}")
         
         # Generate embedding for semantic search
         invoice_text = json.dumps({

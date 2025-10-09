@@ -22,6 +22,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface ItemData {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -32,6 +39,7 @@ export default function UploadPage() {
   const [progressMessage, setProgressMessage] = useState("");
   const [extractedData, setExtractedData] = useState<any>(null);
   const [editableData, setEditableData] = useState<any>(null);
+  const [items, setItems] = useState<ItemData[]>([]);
   const [result, setResult] = useState<any>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -263,6 +271,21 @@ export default function UploadPage() {
         ai_insight: analyzeData.ai_insight || "",
       });
 
+      // استخراج Items من VLM response
+      const extractedItems = analyzeData.output["Items"] || [];
+      if (Array.isArray(extractedItems) && extractedItems.length > 0) {
+        const cleanedItems = extractedItems.map((item: any) => ({
+          description: getCleanValue(item.description || item.Description, ""),
+          quantity: parseInt(getNumericValue(item.quantity || item.Quantity, "1")),
+          unit_price: parseFloat(getNumericValue(item.unit_price || item.unit_Price || item["Unit Price"], "0")),
+          total: parseFloat(getNumericValue(item.total || item.Total, "0")),
+        }));
+        setItems(cleanedItems);
+      } else {
+        // إذا لم يتم استخراج Items، نضيف item واحد فارغ
+        setItems([{ description: "", quantity: 1, unit_price: 0, total: 0 }]);
+      }
+
       toast({
         title: "تم التحليل! ✅",
         description: "راجع البيانات وعدلها إذا لزم الأمر",
@@ -301,6 +324,7 @@ export default function UploadPage() {
         body: JSON.stringify({
           ...editableData,
           image_url: imageUrl,
+          items: items, // إضافة Items
         }),
       });
 
@@ -344,6 +368,30 @@ export default function UploadPage() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  // دوال Items
+  const handleItemChange = (index: number, field: keyof ItemData, value: string | number) => {
+    setItems((prev) => {
+      const newItems = [...prev];
+      newItems[index] = {
+        ...newItems[index],
+        [field]: value,
+      };
+      // حساب الـ total تلقائياً
+      if (field === 'quantity' || field === 'unit_price') {
+        newItems[index].total = newItems[index].quantity * newItems[index].unit_price;
+      }
+      return newItems;
+    });
+  };
+
+  const addItem = () => {
+    setItems((prev) => [...prev, { description: "", quantity: 1, unit_price: 0, total: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleCopyError = () => {
@@ -524,6 +572,71 @@ export default function UploadPage() {
                     />
                   </div>
                 </div>
+              </div>
+
+              {/* قسم العناصر (Items) */}
+              <div className="space-y-3 pt-4" dir="rtl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold">العناصر / المنتجات</h3>
+                  <Button onClick={addItem} variant="outline" size="sm" className="gap-2">
+                    <span className="text-xl">+</span> إضافة منتج
+                  </Button>
+                </div>
+
+                {items.map((item, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="grid gap-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">المنتج #{index + 1}</span>
+                        {items.length > 1 && (
+                          <Button
+                            onClick={() => removeItem(index)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            حذف
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid md:grid-cols-4 gap-3">
+                        <div className="md:col-span-2">
+                          <Label>الوصف</Label>
+                          <Input
+                            value={item.description}
+                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                            placeholder="مثال: قهوة أمريكية"
+                          />
+                        </div>
+                        <div>
+                          <Label>الكمية</Label>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', parseFloat(e.target.value) || 1)}
+                            placeholder="1"
+                          />
+                        </div>
+                        <div>
+                          <Label>السعر</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.unit_price}
+                            onChange={(e) => handleItemChange(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-sm text-muted-foreground">الإجمالي: </span>
+                        <span className="font-bold">{item.total.toFixed(2)} ﷼</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
               </div>
 
               <div className="flex gap-3 pt-4">
