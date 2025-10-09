@@ -1,0 +1,14 @@
+# Vercel Deployment Trigger
+# This file is used to trigger a new deployment on Vercel
+# Last update: 2025-10-09
+
+Deployment trigger for latest fixes:
+- Fix React Hydration errors (#425, #418, #423)
+- Fix chat page function order
+- Fix API request (question → message)
+- Fix 422 Backend error
+
+Latest commits:
+- d641d46: Fix chat page errors
+- be00243: Fix React Hydration errors
+
