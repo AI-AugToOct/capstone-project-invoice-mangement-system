@@ -146,15 +146,25 @@ export default function UploadPage() {
       // ============================================================
       const output = analyzeData.output || {};
       
-      // عدد الحقول الفارغة
-      const emptyFields = [
-        output["Invoice Number"],
-        output["Vendor"],
-        output["Total Amount"]
-      ].filter(val => !val || val === "Not Mentioned" || val === "0" || val === "0.00").length;
+      // Helper function للتحقق من القيمة
+      const isEmpty = (val: any) => {
+        if (!val) return true;
+        const strVal = String(val).trim();
+        return strVal === "Not Mentioned" || 
+               strVal === "0" || 
+               strVal === "0.00" ||
+               strVal === "" ||
+               strVal === "null" ||
+               strVal === "undefined";
+      };
       
-      // إذا كل الحقول المهمة فارغة = مش فاتورة!
-      if (emptyFields >= 2 && (!output["Total Amount"] || output["Total Amount"] === "0" || output["Total Amount"] === "0.00")) {
+      // عدد الحقول المهمة الفارغة
+      const vendorEmpty = isEmpty(output["Vendor"]);
+      const invoiceNumEmpty = isEmpty(output["Invoice Number"]);
+      const totalEmpty = isEmpty(output["Total Amount"]);
+      
+      // إذا الـ 3 حقول المهمة كلها فارغة = مش فاتورة!
+      if (vendorEmpty && invoiceNumEmpty && totalEmpty) {
         throw new Error("❌ الصورة المرفوعة لا تبدو أنها فاتورة!\n\n" +
                        "الرجاء رفع صورة فاتورة أو إيصال شراء واضح.\n\n" +
                        "تأكد من:\n" +
@@ -163,21 +173,45 @@ export default function UploadPage() {
                        "✓ الفاتورة تحتوي على معلومات واضحة (مبلغ، متجر، تاريخ)");
       }
       
+      // Log للتشخيص (سيحذف لاحقاً)
+      console.log("📊 Extracted Data:", {
+        vendor: output["Vendor"],
+        total: output["Total Amount"],
+        invoice_num: output["Invoice Number"]
+      });
+      
       // Set extracted data for editing
       setExtractedData(analyzeData);
+      
+      // Helper للحصول على قيمة نظيفة
+      const getCleanValue = (val: any, defaultVal: string = "") => {
+        if (!val || val === "Not Mentioned" || val === "null" || val === "undefined") {
+          return defaultVal;
+        }
+        return String(val).trim();
+      };
+      
+      // Helper للحصول على قيمة رقمية
+      const getNumericValue = (val: any, defaultVal: string = "0") => {
+        const cleaned = getCleanValue(val, defaultVal);
+        // إزالة أي رموز غير رقمية (ما عدا النقطة والناقص)
+        const numeric = cleaned.replace(/[^\d.-]/g, '');
+        return numeric || defaultVal;
+      };
+      
       setEditableData({
-        invoice_number: analyzeData.output["Invoice Number"] || "",
-        date: analyzeData.output["Date"] || "",
-        vendor: analyzeData.output["Vendor"] || "",
-        tax_number: analyzeData.output["Tax Number"] || "",
-        cashier: analyzeData.output["Cashier"] || "",
-        branch: analyzeData.output["Branch"] || "",
-        phone: analyzeData.output["Phone"] || "",
-        subtotal: analyzeData.output["Subtotal"] || "0",
-        tax: analyzeData.output["Tax"] || "0",
-        total_amount: analyzeData.output["Total Amount"] || "0",
-        discounts: analyzeData.output["Discounts"] || "0",
-        payment_method: analyzeData.output["Payment Method"] || "",
+        invoice_number: getCleanValue(analyzeData.output["Invoice Number"]),
+        date: getCleanValue(analyzeData.output["Date"]),
+        vendor: getCleanValue(analyzeData.output["Vendor"]),
+        tax_number: getCleanValue(analyzeData.output["Tax Number"]),
+        cashier: getCleanValue(analyzeData.output["Cashier"]),
+        branch: getCleanValue(analyzeData.output["Branch"]),
+        phone: getCleanValue(analyzeData.output["Phone"]),
+        subtotal: getNumericValue(analyzeData.output["Subtotal"], "0"),
+        tax: getNumericValue(analyzeData.output["Tax"], "0"),
+        total_amount: getNumericValue(analyzeData.output["Total Amount"], "0"),
+        discounts: getNumericValue(analyzeData.output["Discounts"], "0"),
+        payment_method: getCleanValue(analyzeData.output["Payment Method"]),
         invoice_type: analyzeData.invoice_type || "فاتورة شراء",
         category: analyzeData.category || { ar: "أخرى", en: "Other" },
         ai_insight: analyzeData.ai_insight || "",
