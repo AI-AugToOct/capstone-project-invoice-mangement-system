@@ -217,14 +217,14 @@ export default function DashboardPage() {
       insights.push({
         icon: trend === 'up' ? '📈' : '📉',
         label: `المقارنة الشهرية (${currentMonth} مقابل ${previousMonth})`,
-        value: `${growth > 0 ? 'زيادة' : 'انخفاض'} بنسبة ${Math.abs(growth).toFixed(1)}٪ - إجمالي ${thisMonthTotal.toFixed(2)} ر.س`,
+        value: `${growth > 0 ? 'زيادة' : 'انخفاض'} بنسبة ${Math.abs(growth).toFixed(1)}٪ - إجمالي ${thisMonthTotal.toFixed(2)} ﷼`,
         trend: trend
       });
     } else if (thisMonthTotal > 0) {
       insights.push({
         icon: '📊',
         label: `الإنفاق الشهري (${currentMonth})`,
-        value: `${thisMonthTotal.toFixed(2)} ر.س - ${thisMonth.length} ${thisMonth.length === 1 ? 'فاتورة' : 'فواتير'}`,
+        value: `${thisMonthTotal.toFixed(2)} ﷼ - ${thisMonth.length} ${thisMonth.length === 1 ? 'فاتورة' : 'فواتير'}`,
         trend: 'neutral'
       });
     }
@@ -251,7 +251,7 @@ export default function DashboardPage() {
     insights.push({
       icon: '💵',
       label: 'متوسط قيمة الفاتورة',
-      value: `${avgSpending.toFixed(2)} ر.س`,
+      value: `${avgSpending.toFixed(2)} ﷼`,
       trend: 'neutral'
     });
 
@@ -268,7 +268,7 @@ export default function DashboardPage() {
       insights.push({
         icon: '🎯',
         label: 'الفئة الأكثر إنفاقاً',
-        value: `${topCategory[0]} - ${(topCategory[1] as number).toFixed(2)} ر.س (${percentage}٪)`,
+        value: `${topCategory[0]} - ${(topCategory[1] as number).toFixed(2)} ﷼ (${percentage}٪)`,
         trend: 'neutral'
       });
     }
@@ -418,21 +418,21 @@ export default function DashboardPage() {
       value: totalSpent.toFixed(2),
       icon: DollarSign,
       color: "from-green-500 to-emerald-500",
-      suffix: "ر.س",
+      suffix: "﷼",
     },
     {
       title: "متوسط الفاتورة",
       value: avgInvoice.toFixed(2),
       icon: TrendingUp,
       color: "from-purple-500 to-pink-500",
-      suffix: "ر.س",
+      suffix: "﷼",
     },
     {
       title: "إجمالي الضرائب",
       value: totalTax.toFixed(2),
       icon: Receipt,
       color: "from-indigo-500 to-purple-500",
-      suffix: "ر.س",
+      suffix: "﷼",
     },
   ];
 
@@ -620,7 +620,7 @@ export default function DashboardPage() {
                             ))}
                           </Pie>
                           <Tooltip 
-                            formatter={(value: any) => `${value.toFixed(2)} ر.س`}
+                            formatter={(value: any) => `${value.toFixed(2)} ﷼`}
                             contentStyle={{ 
                               backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                               borderRadius: '8px', 
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{entry.name}</p>
                               <p className="text-xs text-muted-foreground">
-                                {entry.value.toFixed(2)} ر.س
+                                {entry.value.toFixed(2)} ﷼
                               </p>
                             </div>
                           </div>
@@ -685,7 +685,7 @@ export default function DashboardPage() {
                         <PolarRadiusAxis tick={{ fontSize: 11 }} />
                         <Radar name="الإنفاق" dataKey="total" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
                         <Tooltip 
-                          formatter={(value: any) => `${value.toFixed(2)} ر.س`}
+                          formatter={(value: any) => `${value.toFixed(2)} ﷼`}
                           contentStyle={{ 
                             backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                             borderRadius: '8px', 
@@ -739,7 +739,7 @@ export default function DashboardPage() {
                         <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                         <YAxis tick={{ fontSize: 10 }} />
                         <Tooltip 
-                          formatter={(value: any) => `${value.toFixed(2)} ر.س`}
+                          formatter={(value: any) => `${value.toFixed(2)} ﷼`}
                           contentStyle={{ 
                             backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                             borderRadius: '8px', 
@@ -784,7 +784,7 @@ export default function DashboardPage() {
                         <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                         <YAxis tick={{ fontSize: 10 }} />
                         <Tooltip 
-                          formatter={(value: any) => `${value.toFixed(2)} ر.س`}
+                          formatter={(value: any) => `${value.toFixed(2)} ﷼`}
                           contentStyle={{ 
                             backgroundColor: 'rgba(255, 255, 255, 0.95)', 
                             borderRadius: '8px', 

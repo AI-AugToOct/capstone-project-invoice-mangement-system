@@ -211,7 +211,7 @@ export default function InvoiceResultCard({ result, onReset }: InvoiceResultCard
                   </span>
                 </div>
                 <span className={item.highlight ? "font-bold text-xl text-green-600" : "font-semibold"}>
-                  {item.value} ر.س
+                  {item.value} ﷼
                 </span>
               </div>
             ))}
@@ -262,10 +262,10 @@ export default function InvoiceResultCard({ result, onReset }: InvoiceResultCard
                     <div className="flex-1">
                       <p className="font-medium">{item.description || "عنصر غير معروف"}</p>
                       <p className="text-sm text-muted-foreground">
-                        الكمية: {item.quantity || 1} × {item.unit_price || 0} ر.س
+                        الكمية: {item.quantity || 1} × {item.unit_price || 0} ﷼
                       </p>
                     </div>
-                    <p className="font-semibold">{item.total || 0} ر.س</p>
+                    <p className="font-semibold">{item.total || 0} ﷼</p>
                   </div>
                 ))}
               </div>

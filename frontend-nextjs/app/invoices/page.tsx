@@ -32,6 +32,15 @@ interface Invoice {
   created_at: string;
 }
 
+interface Item {
+  id: number;
+  invoice_id: number;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}
+
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
@@ -374,7 +383,7 @@ export default function InvoicesPage() {
                         الإجمالي
                       </span>
                       <span className="text-xl font-bold text-green-600 dark:text-green-400">
-                        {invoice.total_amount} ر.س
+                        {invoice.total_amount} ﷼
                       </span>
                     </div>
 

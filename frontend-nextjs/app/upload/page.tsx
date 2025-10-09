@@ -215,6 +215,18 @@ export default function UploadPage() {
       // Set extracted data for editing
       setExtractedData(analyzeData);
       
+      // Helper لتحويل الأرقام العربية إلى إنجليزية
+      const convertArabicToEnglishNumbers = (str: string): string => {
+        const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        
+        let result = str;
+        for (let i = 0; i < arabicNumbers.length; i++) {
+          result = result.replace(new RegExp(arabicNumbers[i], 'g'), englishNumbers[i]);
+        }
+        return result;
+      };
+      
       // Helper للحصول على قيمة نظيفة
       const getCleanValue = (val: any, defaultVal: string = "") => {
         if (!val || val === "Not Mentioned" || val === "null" || val === "undefined") {
@@ -223,9 +235,11 @@ export default function UploadPage() {
         return String(val).trim();
       };
       
-      // Helper للحصول على قيمة رقمية
+      // Helper للحصول على قيمة رقمية (يحول الأرقام العربية تلقائياً)
       const getNumericValue = (val: any, defaultVal: string = "0") => {
-        const cleaned = getCleanValue(val, defaultVal);
+        let cleaned = getCleanValue(val, defaultVal);
+        // تحويل الأرقام العربية إلى إنجليزية
+        cleaned = convertArabicToEnglishNumbers(cleaned);
         // إزالة أي رموز غير رقمية (ما عدا النقطة والناقص)
         const numeric = cleaned.replace(/[^\d.-]/g, '');
         return numeric || defaultVal;

@@ -350,13 +350,13 @@ export default function ChatPage() {
                                       <div className="flex items-center gap-1">
                                         <DollarSign className="w-4 h-4 text-green-600" />
                                         <span className="text-base font-bold text-green-600">
-                                          {parseFloat(invoice.total_amount || "0").toFixed(2)} ر.س
+                                          {parseFloat(invoice.total_amount || "0").toFixed(2)} ﷼
                                         </span>
                                       </div>
                                       
                                       {invoice.tax && parseFloat(invoice.tax) > 0 && (
                                         <span className="text-xs text-muted-foreground">
-                                          ضريبة: {parseFloat(invoice.tax).toFixed(2)} ر.س
+                                          ضريبة: {parseFloat(invoice.tax).toFixed(2)} ﷼
                                         </span>
                                       )}
                                     </div>
