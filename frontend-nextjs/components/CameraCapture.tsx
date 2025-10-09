@@ -24,17 +24,37 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Use back camera on mobile
+      // Enhanced constraints for better mobile support
+      const constraints = {
+        video: {
+          facingMode: "environment", // Use back camera on mobile
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 },
+        },
         audio: false,
-      });
+      };
+      
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       setStream(mediaStream);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        // Ensure video plays on iOS Safari
+        videoRef.current.setAttribute('playsinline', '');
+        videoRef.current.play().catch(err => {
+          console.error("Video play error:", err);
+          setError("فشل تشغيل الكاميرا. حاول مرة أخرى.");
+        });
       }
     } catch (err: any) {
-      setError("فشل الوصول إلى الكاميرا. الرجاء التحقق من الأذونات.");
       console.error("Camera error:", err);
+      if (err.name === 'NotAllowedError') {
+        setError("الرجاء السماح بالوصول إلى الكاميرا من إعدادات المتصفح.");
+      } else if (err.name === 'NotFoundError') {
+        setError("لم يتم العثور على كاميرا. تأكد من وجود كاميرا متصلة.");
+      } else {
+        setError("فشل الوصول إلى الكاميرا. الرجاء المحاولة مرة أخرى.");
+      }
     }
   };
 
@@ -85,12 +105,14 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative">
+      <div className="relative bg-black">
         <video
           ref={videoRef}
           autoPlay
           playsInline
-          className="w-full h-auto rounded-t-lg"
+          muted
+          className="w-full h-auto max-h-[60vh] object-cover rounded-t-lg"
+          style={{ minHeight: '300px' }}
         />
         <canvas ref={canvasRef} className="hidden" />
         <div className="p-4 bg-background">

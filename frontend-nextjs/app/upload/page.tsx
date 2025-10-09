@@ -9,7 +9,6 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
 import { API_BASE } from "@/lib/utils";
 import InvoiceResultCard from "@/components/InvoiceResultCard";
-import CameraCapture from "@/components/CameraCapture";
 import Image from "next/image";
 import { useTheme } from "next-themes";
 
@@ -19,7 +18,6 @@ export default function UploadPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<any>(null);
-  const [showCamera, setShowCamera] = useState(false);
   const { toast } = useToast();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -44,12 +42,6 @@ export default function UploadPage() {
       setFile(selectedFile);
       setResult(null);
     }
-  };
-
-  const handleCameraCapture = (capturedFile: File) => {
-    setFile(capturedFile);
-    setShowCamera(false);
-    setResult(null);
   };
 
   const handleUpload = async () => {
@@ -149,21 +141,21 @@ export default function UploadPage() {
       {/* Fixed Animated Background */}
       <div className="fixed inset-0 -z-10 animate-gradient opacity-90" />
       
-      <main className="container mx-auto px-6 md:px-16 lg:px-24 xl:px-32 py-20 md:py-24">
-    <div className="space-y-8">
+      <main className="container mx-auto px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32 py-12 sm:py-16 md:py-20 lg:py-24">
+    <div className="space-y-6 sm:space-y-8">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-8 py-4"
+        className="text-center space-y-4 sm:space-y-6 md:space-y-8 py-2 sm:py-4"
       >
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2 sm:mb-4">
           {mounted && (
             <Image
               src={theme === "dark" ? "/title-upload-dark.svg" : "/title-upload.svg"}
               alt="رفع وتحليل الفاتورة"
               width={650}
               height={120}
-              className="w-full max-w-2xl h-auto"
+              className="w-full max-w-2xl h-auto px-4 sm:px-0"
               priority
             />
           )}
@@ -173,12 +165,12 @@ export default function UploadPage() {
               alt="رفع وتحليل الفاتورة"
               width={650}
               height={120}
-              className="w-full max-w-2xl h-auto"
+              className="w-full max-w-2xl h-auto px-4 sm:px-0"
               priority
             />
           )}
         </div>
-        <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4 sm:px-0">
           ارفع صورة أو ملف PDF للفاتورة أو التقطها مباشرة لتحليلها
         </p>
       </motion.div>
@@ -244,24 +236,27 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full gap-2"
-                onClick={() => setShowCamera(!showCamera)}
-              >
-                <Camera className="w-5 h-5" />
-                {showCamera ? "إخفاء الكاميرا" : "التقاط صورة بالكاميرا"}
-              </Button>
-
-              {showCamera && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
+              <label htmlFor="camera-capture" className="w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  asChild
                 >
-                  <CameraCapture onCapture={handleCameraCapture} />
-                </motion.div>
-              )}
+                  <span>
+                    <Camera className="w-5 h-5" />
+                    التقاط صورة بالكاميرا
+                  </span>
+                </Button>
+              </label>
+              <input
+                id="camera-capture"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+              />
 
               {/* Upload Progress */}
               <AnimatePresence>

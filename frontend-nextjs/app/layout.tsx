@@ -14,6 +14,16 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "مُـفـــــوْتِــــر - نظام ذكي لإدارة الفواتير",
   description: "يحفظ، يدير، يحلل، ويختصر وقتك",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#8dbcc7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0f172a' }
+  ],
 };
 
 export default function RootLayout({
