@@ -2,11 +2,14 @@ import os
 import logging
 import io
 import requests
+import tempfile
+from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from PIL import Image
 import fitz  # PyMuPDF
+from backend.utils_image_autofix import auto_fix_invoice_image
 
 # Load env vars
 load_dotenv()
@@ -63,6 +66,8 @@ def pdf_to_image(pdf_bytes: bytes) -> bytes:
 
 @router.post("/")
 async def upload_invoice(file: UploadFile = File(...)):
+    temp_file_path = None
+    
     try:
         logger.info(f"⬆️ Uploading {file.filename} to Supabase...")
 
@@ -83,7 +88,43 @@ async def upload_invoice(file: UploadFile = File(...)):
             file_path = original_filename
             content_type = file.content_type or "image/jpeg"
         
+        # ============================================================
+        # 🔧 تصحيح الصورة تلقائياً (Auto-Fix)
+        # ============================================================
+        try:
+            # حفظ الصورة مؤقتاً
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+                temp_file.write(file_bytes)
+                temp_file_path = temp_file.name
+            
+            logger.info(f"🔧 Applying auto-fix to image: {temp_file_path}")
+            
+            # تطبيق التصحيح التلقائي
+            auto_fix_success = auto_fix_invoice_image(temp_file_path)
+            
+            if auto_fix_success:
+                # قراءة الصورة المصححة
+                with open(temp_file_path, 'rb') as f:
+                    file_bytes = f.read()
+                logger.info(f"✅ Image auto-fix completed successfully")
+            else:
+                logger.warning(f"⚠️ Auto-fix failed, using original image")
+        
+        except Exception as autofix_error:
+            logger.warning(f"⚠️ Auto-fix error: {autofix_error}. Using original image.")
+        
+        finally:
+            # حذف الملف المؤقت
+            if temp_file_path and os.path.exists(temp_file_path):
+                try:
+                    os.remove(temp_file_path)
+                    logger.info(f"🗑️ Cleaned up temp file: {temp_file_path}")
+                except Exception as cleanup_error:
+                    logger.warning(f"⚠️ Failed to cleanup temp file: {cleanup_error}")
+        
+        # ============================================================
         # Upload to Supabase Storage using library (with upsert)
+        # ============================================================
         try:
             # First, try to delete if exists
             try:
