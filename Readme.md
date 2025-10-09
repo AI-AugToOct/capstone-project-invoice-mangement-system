@@ -55,14 +55,14 @@ graph TD
     Backend -->|AI Analysis| VLM[🧠 Qwen2.5-VL-32B]
     VLM -->|Extracted Data| Backend
     Backend -->|Save| Supabase_DB[🗄️ PostgreSQL + pgvector]
-    Backend -->|Generate| Embeddings[🔢 MiniLM Embeddings]
+    Backend -->|Generate| Embeddings[🔢 OpenAI Embeddings]
     Embeddings -->|Store| Supabase_DB
     Supabase_DB -->|Query Results| Backend
     Backend -->|JSON Response| Frontend
     Frontend -->|Display| Dashboard[📊 Dashboard]
     Frontend -->|Chat Query| ChatInterface[💬 Chat Bot]
     ChatInterface -->|RAG + SQL| Backend
-    Backend -->|LLM Call| OpenAI[🤖 GPT-4 / Llama3]
+    Backend -->|LLM Call| OpenAI[🤖 GPT-4o-mini]
     OpenAI -->|Answer| ChatInterface
     
     style Frontend fill:#60a5fa
@@ -102,9 +102,9 @@ graph TD
 - **Vision-Language Model**: [Qwen2.5-VL-32B-Instruct](https://huggingface.co/Qwen/Qwen2.5-VL-32B-Instruct) via FriendliAI
   - Extracts: Invoice #, Date, Vendor, Amount, Tax, Items, etc.
   - Supports Arabic and English text in images
-- **Text Embeddings**: [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
-  - Generates 384-dim vectors for semantic search
-- **LLM for Chat**: GPT-4-turbo / Llama-3-70B
+- **Text Embeddings**: [text-embedding-3-small](https://platform.openai.com/docs/guides/embeddings) via OpenAI
+  - Generates 1536-dim vectors for semantic search
+- **LLM for Chat**: GPT-4o-mini
   - Text-to-SQL query generation
   - Context-aware responses with RAG
 
@@ -138,12 +138,12 @@ graph TD
 
 ### 🔍 **Semantic Search with pgvector**
 
-**Model**: sentence-transformers/all-MiniLM-L6-v2 (384-dimensional embeddings)
+**Model**: text-embedding-3-small (1536-dimensional embeddings) - OpenAI
 
 #### How It Works:
 ```python
 # Example: User asks "فواتير المقاهي الشهر الماضي"
-1. Convert query → 384-dim vector
+1. Convert query → 1536-dim vector (OpenAI API)
 2. Search invoices table using cosine similarity
 3. Return top 5 most relevant invoices
 4. LLM generates natural answer
@@ -186,7 +186,7 @@ graph LR
    - Hybrid: Uses both when needed
 
 3. **📊 Executor (SQL)**: Generates safe SQL queries
-   - Uses Llama-3-70B for Text-to-SQL
+   - Uses GPT-4o-mini for Text-to-SQL
    - Applies security checks (no DROP/DELETE/ALTER)
    - Example: "كم أنفقت في المقاهي؟" → `SELECT SUM(total_amount) FROM invoices WHERE category = 'مقهى'`
 
@@ -201,7 +201,7 @@ graph LR
    - Re-routes if confidence is low
 
 6. **💬 Responder**: Composes natural answer
-   - Uses GPT-4 for fluent Arabic responses
+   - Uses GPT-4o-mini for fluent Arabic responses
    - Includes context from DB results
    - Formats numbers with SAR symbol (﷼)
 
@@ -405,7 +405,7 @@ graph TD
     C --> D{Query Type?}
     D -->|Structured Query| E[🗃️ SQL Executor]
     D -->|Semantic Search| F[🔢 Vector Search]
-    E --> E1[📝 Generate SQL via Llama3]
+    E --> E1[📝 Generate SQL via GPT-4o-mini]
     E1 --> E2[🔒 Security Check]
     E2 --> E3[▶️ Execute on PostgreSQL]
     E3 --> G[📊 Results]
@@ -555,9 +555,8 @@ graph LR
 | | pgvector | Vector similarity search |
 | | Supabase Storage | Object storage for images |
 | **AI/ML** | FriendliAI (Qwen2.5-VL-32B) | Vision-Language Model |
-| | sentence-transformers | Text embeddings |
-| | OpenAI GPT-4 | Chat & reasoning |
-| | Meta Llama 3 | Text-to-SQL |
+| | OpenAI (text-embedding-3-small) | Text embeddings (1536-dim) |
+| | OpenAI GPT-4o-mini | Chat & reasoning |
 | **Image Processing** | OpenCV | Auto-rotation, deskewing |
 | | Tesseract OCR | Orientation detection |
 | | Pillow | Image manipulation |
@@ -630,7 +629,8 @@ FRIENDLI_ENDPOINT=https://api.friendli.ai/serverless/v1/chat/completions
 
 # Model Names
 VLM_MODEL=Qwen/Qwen2.5-VL-32B-Instruct
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_MODEL=text-embedding-3-small
+LLM_MODEL=gpt-4o-mini
 ```
 
 ### Frontend (`.env.local`)
@@ -886,10 +886,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **FriendliAI** for providing access to Qwen2.5-VL-32B model
-- **Supabase** for the excellent PostgreSQL + Storage solution
-- **OpenAI** for GPT-4 API
-- **Hugging Face** for model hosting and transformers library
+- **FriendliAI** for providing access to Qwen2.5-VL-32B-Instruct model
+- **Supabase** for the excellent PostgreSQL + Storage + pgvector solution
+- **OpenAI** for GPT-4o-mini and text-embedding-3-small APIs
 - **shadcn/ui** for beautiful React components
 - **King Abdulaziz University** for supporting this capstone project
 
