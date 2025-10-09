@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Camera, FileImage, CheckCircle, XCircle, Loader2, Save, Edit2 } from "lucide-react";
+import { Upload, Camera, FileImage, CheckCircle, XCircle, Loader2, Save, Edit2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +13,14 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -26,6 +34,8 @@ export default function UploadPage() {
   const [editableData, setEditableData] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -240,11 +250,9 @@ export default function UploadPage() {
         description: "راجع البيانات وعدلها إذا لزم الأمر",
       });
     } catch (error: any) {
-      toast({
-        title: "خطأ ❌",
-        description: error.message || "حدث خطأ أثناء معالجة الفاتورة",
-        variant: "destructive",
-      });
+      // Show error in a dialog (popup) instead of toast
+      setErrorMessage(error.message || "حدث خطأ أثناء معالجة الفاتورة");
+      setErrorDialogOpen(true);
     } finally {
       setUploading(false);
       setProcessing(false);
@@ -318,6 +326,14 @@ export default function UploadPage() {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleCopyError = () => {
+    navigator.clipboard.writeText(errorMessage);
+    toast({
+      title: "تم النسخ ✅",
+      description: "تم نسخ رسالة الخطأ إلى الحافظة",
+    });
   };
 
   return (
@@ -666,6 +682,43 @@ export default function UploadPage() {
       )}
     </div>
     </main>
+
+    {/* Error Dialog - يظهر في المنتصف ويمكن نسخ النص */}
+    <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive text-xl">
+            <XCircle className="w-6 h-6" />
+            خطأ في معالجة الفاتورة
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="py-4">
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 text-right">
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed font-medium text-foreground select-all">
+              {errorMessage}
+            </pre>
+          </div>
+        </div>
+
+        <DialogFooter className="flex-row gap-2 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={handleCopyError}
+            className="gap-2 flex-1"
+          >
+            <Copy className="w-4 h-4" />
+            نسخ النص
+          </Button>
+          <Button
+            onClick={() => setErrorDialogOpen(false)}
+            className="flex-1"
+          >
+            حسناً
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }
