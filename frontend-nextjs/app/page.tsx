@@ -96,7 +96,8 @@ export default function Home() {
               <MufawterLogo size="xl" />
             </motion.div>
             
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto px-4">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto px-4"
+               style={{ lineHeight: '1.8' }}>
               نظامك الذكي لرفع، تحليل، وإدارة جميع فواتيرك بضغطة واحدة
             </p>
           </motion.div>
@@ -188,15 +189,21 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
+            className="text-center space-y-6 mb-16 py-6"
           >
             <h2 
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4"
-              style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] px-4"
+              style={{ 
+                fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+                lineHeight: '1.5',
+                paddingTop: '0.2em',
+                paddingBottom: '0.2em'
+              }}
             >
               كيف يعمل النظام؟
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold px-4"
+               style={{ lineHeight: '1.8' }}>
               ثلاث خطوات بسيطة للبدء
             </p>
           </motion.div>
@@ -243,10 +250,16 @@ export default function Home() {
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-3"
+                      style={{ 
+                        lineHeight: '1.5',
+                        paddingTop: '0.1em',
+                        paddingBottom: '0.1em'
+                      }}>
                     {item.title}
                   </h3>
-                  <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-lg text-gray-600 dark:text-gray-400"
+                     style={{ lineHeight: '1.8' }}>
                     {item.description}
                   </p>
                 </div>
@@ -267,15 +280,21 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-3 sm:space-y-4 md:space-y-6 mb-10 sm:mb-12 md:mb-16 py-2 sm:py-4"
+            className="text-center space-y-6 mb-16 py-6"
           >
             <h2 
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4"
-              style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] px-4"
+              style={{ 
+                fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+                lineHeight: '1.5',
+                paddingTop: '0.2em',
+                paddingBottom: '0.2em'
+              }}
             >
               مميزات قوية
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold leading-relaxed px-4">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold px-4"
+               style={{ lineHeight: '1.8' }}>
               كل ما تحتاجه لإدارة فواتيرك بذكاء
             </p>
           </motion.div>
@@ -301,12 +320,18 @@ export default function Home() {
 
                     {/* Content */}
                     <h3 
-                      className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 dark:text-white mb-2 sm:mb-3 group-hover:text-[#8dbcc7] transition-colors leading-tight"
-                      style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+                      className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 dark:text-white mb-2 sm:mb-3 group-hover:text-[#8dbcc7] transition-colors"
+                      style={{ 
+                        fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+                        lineHeight: '1.5',
+                        paddingTop: '0.1em',
+                        paddingBottom: '0.1em'
+                      }}
                     >
                       {feature.title}
                     </h3>
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400"
+                       style={{ lineHeight: '1.8' }}>
                       {feature.description}
                     </p>
 
@@ -370,12 +395,18 @@ export default function Home() {
             className="space-y-6 sm:space-y-8"
           >
             <h2 
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight px-4"
-              style={{ fontFamily: 'var(--font-cairo), Cairo, sans-serif' }}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white px-4"
+              style={{ 
+                fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+                lineHeight: '1.5',
+                paddingTop: '0.2em',
+                paddingBottom: '0.2em'
+              }}
             >
               جاهز لتنظيم فواتيرك؟
             </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold px-4">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl mx-auto font-semibold px-4"
+               style={{ lineHeight: '1.8' }}>
               ابدأ الآن واستمتع بتجربة سهلة وسريعة
             </p>
           </motion.div>

@@ -435,32 +435,22 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-8 py-4"
+          className="text-center space-y-6 py-6"
           dir="rtl"
         >
-          <div className="flex justify-center mb-4">
-            {mounted && (
-              <Image
-                src={theme === "dark" ? "/title-dashboard-dark.svg" : "/title-dashboard.svg"}
-                alt="لوحة التحكم الذكية"
-                width={600}
-                height={120}
-                className="w-full max-w-2xl h-auto"
-                priority
-              />
-            )}
-            {!mounted && (
-              <Image
-                src="/title-dashboard.svg"
-                alt="لوحة التحكم الذكية"
-                width={600}
-                height={120}
-                className="w-full max-w-2xl h-auto"
-                priority
-              />
-            )}
-          </div>
-          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+          <h1 
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] px-4"
+            style={{ 
+              fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+              lineHeight: '1.5',
+              paddingTop: '0.2em',
+              paddingBottom: '0.2em'
+            }}
+          >
+            لوحة التحكم الذكية
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold"
+             style={{ lineHeight: '1.8' }}>
             تحليل شامل لمصاريفك وفواتيرك مع رؤى تفصيلية
           </p>
         </motion.div>

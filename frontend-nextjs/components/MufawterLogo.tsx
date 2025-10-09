@@ -31,7 +31,7 @@ export default function MufawterLogo({
     >
       <Image
         src="/logo-mufawter.svg"
-        alt="مُـفَـوْتِــر"
+        alt="مُـــفـــــوْتِــــر"
         width={dimensions.width}
         height={dimensions.height}
         priority

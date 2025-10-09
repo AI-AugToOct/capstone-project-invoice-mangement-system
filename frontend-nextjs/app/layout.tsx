@@ -12,7 +12,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "مُـفـــــوْتِــــر - نظام ذكي لإدارة الفواتير",
+  title: "مُـــفـــــوْتِــــر - نظام ذكي لإدارة الفواتير",
   description: "يحفظ، يدير، يحلل، ويختصر وقتك",
   viewport: {
     width: 'device-width',
@@ -43,7 +43,7 @@ export default function RootLayout({
           <Navbar />
           {children}
           <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-            <p>© 2025 مُـفـــــوْتِــــر - جميع الحقوق محفوظة</p>
+            <p>© 2025 مُـــفـــــوْتِــــر - جميع الحقوق محفوظة</p>
             <p className="text-xs mt-1 text-muted-foreground/70">يحفظ، يدير، يحلل، ويختصر وقتك</p>
           </footer>
           <Toaster />

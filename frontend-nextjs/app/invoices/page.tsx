@@ -172,30 +172,20 @@ export default function InvoicesPage() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <div className="text-center space-y-8 py-4">
-          <div className="flex justify-center mb-4">
-            {mounted && (
-              <Image
-                src={theme === "dark" ? "/title-invoices-dark.svg" : "/title-invoices.svg"}
-                alt="الفواتير المرفوعة"
-                width={550}
-                height={120}
-                className="w-full max-w-2xl h-auto"
-                priority
-              />
-            )}
-            {!mounted && (
-              <Image
-                src="/title-invoices.svg"
-                alt="الفواتير المرفوعة"
-                width={550}
-                height={120}
-                className="w-full max-w-2xl h-auto"
-                priority
-              />
-            )}
-          </div>
-          <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+        <div className="text-center space-y-6 py-6">
+          <h1 
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] px-4"
+            style={{ 
+              fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+              lineHeight: '1.5',
+              paddingTop: '0.2em',
+              paddingBottom: '0.2em'
+            }}
+          >
+            الفواتير المرفوعة
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold"
+             style={{ lineHeight: '1.8' }}>
             جميع الفواتير التي قمت برفعها مع تفاصيلها الكاملة
           </p>
           <div className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg border border-[#8dbcc7]/20">

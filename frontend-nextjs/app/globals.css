@@ -64,9 +64,26 @@
   
   /* Enhanced Arabic text rendering */
   [lang="ar"], [dir="rtl"] {
-    letter-spacing: 0.01em;
-    word-spacing: 0.05em;
-    line-height: 1.8;
+    letter-spacing: 0.015em;
+    word-spacing: 0.06em;
+    line-height: 2;
+    /* Safari iOS fix */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Prevent text clipping - works on all browsers */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.6;
+    padding-top: 0.15em;
+    padding-bottom: 0.15em;
+    /* Prevent text overflow on mobile */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+    /* Safari and Chrome mobile fix */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   /* Better text rendering on mobile */
@@ -74,12 +91,29 @@
     body {
       font-size: 16px;
       -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
     
     [lang="ar"], [dir="rtl"] {
-      letter-spacing: 0.02em;
-      word-spacing: 0.08em;
-      line-height: 1.9;
+      letter-spacing: 0.025em;
+      word-spacing: 0.1em;
+      line-height: 2.2;
+    }
+    
+    /* Mobile heading adjustments */
+    h1, h2, h3, h4, h5, h6 {
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      line-height: 1.7;
+    }
+  }
+  
+  /* Safari specific fixes */
+  @supports (-webkit-appearance: none) {
+    h1, h2, h3, h4, h5, h6 {
+      -webkit-font-smoothing: antialiased;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
   }
 }

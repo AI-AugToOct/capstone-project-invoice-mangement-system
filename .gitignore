@@ -1,9 +1,21 @@
-# Environment Variables
+# Environment Variables - SECURITY CRITICAL
 .env
+.env.*
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+*.env
+frontend-nextjs/.env
+frontend-nextjs/.env.local
+frontend-nextjs/.env.production.local
+backend/.env
+
+# API Keys and Secrets - DO NOT COMMIT
+**/secrets.json
+**/*secret*
+**/*key*.json
+**/credentials.json
 
 # Python
 __pycache__/
@@ -26,6 +38,7 @@ out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # IDE
 .vscode/
@@ -33,10 +46,13 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+.cursor/
 
 # OS
 .DS_Store
 Thumbs.db
+*.bak
+*.tmp
 
 # Logs
 *.log
@@ -46,6 +62,7 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+*.sql.backup
 
 # Docker
 *.dockerignore
@@ -54,4 +71,15 @@ logs/
 build/
 dist/
 
+# Vercel & Railway
 .vercel
+.railway
+
+# Test & Coverage
+coverage/
+.nyc_output/
+*.coverage
+
+# Backup files
+*.backup
+*.old

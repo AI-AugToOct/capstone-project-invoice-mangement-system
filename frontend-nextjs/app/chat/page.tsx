@@ -151,31 +151,21 @@ export default function ChatPage() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
+        className="text-center space-y-6 py-6"
       >
-        <div className="flex justify-center mb-4">
-          {mounted && (
-            <Image
-              src={theme === "dark" ? "/title-chat-dark.svg" : "/title-chat.svg"}
-              alt="الدردشة الذكية"
-              width={500}
-              height={120}
-              className="w-full max-w-xl h-auto"
-              priority
-            />
-          )}
-          {!mounted && (
-            <Image
-              src="/title-chat.svg"
-              alt="الدردشة الذكية"
-              width={500}
-              height={120}
-              className="w-full max-w-xl h-auto"
-              priority
-            />
-          )}
-        </div>
-        <p className="text-xl text-gray-600 dark:text-gray-400">
+        <h1 
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] px-4"
+          style={{ 
+            fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+            lineHeight: '1.5',
+            paddingTop: '0.2em',
+            paddingBottom: '0.2em'
+          }}
+        >
+          الدردشة الذكية
+        </h1>
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-semibold"
+           style={{ lineHeight: '1.8' }}>
           اسأل أي سؤال عن فواتيرك واحصل على إجابات فورية
         </p>
       </motion.div>
@@ -197,7 +187,7 @@ export default function ChatPage() {
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
-                <CardTitle>مساعد مُفَوْتِر الذكي</CardTitle>
+                <CardTitle>مساعد مُـــفـــــوْتِــــر الذكي</CardTitle>
                 <CardDescription>متصل ونشط</CardDescription>
               </div>
             </div>
