@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.sql import func
 from backend.database import Base
 
@@ -26,6 +26,7 @@ class Invoice(Base):
     ai_insight = Column(String)  # 🧠 NEW: for AI-generated insight text
     invoice_type = Column(String)  # نوع الفاتورة (مقهى، مطعم، صيدلية، تأمين، شراء)
     image_url = Column(String)  # رابط الصورة من Supabase
+    is_valid_invoice = Column(Boolean, default=True)  # 🔍 هل الصورة فاتورة حقيقية؟
     created_at = Column(DateTime, default=func.now())
 
     def to_dict(self):

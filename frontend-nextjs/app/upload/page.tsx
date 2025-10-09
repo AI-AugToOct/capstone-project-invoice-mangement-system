@@ -67,7 +67,7 @@ export default function UploadPage() {
       // Step 1: Upload and Auto-Fix
       setUploading(true);
       setProgress(5);
-      setProgressMessage("📤 جاري رفع الصورة...");
+      setProgressMessage("📤 جاري رفع الفاتورة...");
 
       const formData = new FormData();
       formData.append("file", file);
@@ -85,7 +85,7 @@ export default function UploadPage() {
       }
 
       setProgress(20);
-      setProgressMessage("🔧 جاري معالجة الصورة وتصحيحها...");
+      setProgressMessage("🔧 جاري تحسين جودة الصورة...");
       
       // محاكاة وقت المعالجة (Backend يعالج الصورة)
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -102,7 +102,7 @@ export default function UploadPage() {
       }
 
       setProgress(45);
-      setProgressMessage("✅ تم تصحيح الصورة بنجاح!");
+      setProgressMessage("✅ الصورة جاهزة للتحليل!");
       setUploading(false);
       
       // وقت قصير لعرض الرسالة
@@ -111,7 +111,7 @@ export default function UploadPage() {
       // Step 2: Analyze with VLM (without saving to DB)
       setAnalyzing(true);
       setProgress(55);
-      setProgressMessage("🤖 جاري تحليل الفاتورة بالذكاء الاصطناعي...");
+      setProgressMessage("🤖 جاري قراءة بيانات الفاتورة...");
 
       const analyzeResponse = await fetch(`${API_BASE}/vlm/analyze-only`, {
         method: "POST",
@@ -124,7 +124,7 @@ export default function UploadPage() {
       });
 
       setProgress(75);
-      setProgressMessage("📊 جاري استخراج البيانات...");
+      setProgressMessage("📊 جاري استخراج المعلومات...");
 
       if (!analyzeResponse.ok) {
         const errorData = await analyzeResponse.json().catch(() => ({}));
@@ -135,7 +135,7 @@ export default function UploadPage() {
 
       const analyzeData = await analyzeResponse.json();
       setProgress(95);
-      setProgressMessage("✨ جاري تجهيز النتائج...");
+      setProgressMessage("✨ تقريباً انتهينا...");
       
       await new Promise(resolve => setTimeout(resolve, 300));
       setProgress(100);
@@ -146,7 +146,9 @@ export default function UploadPage() {
       // ============================================================
       const output = analyzeData.output || {};
       
-      // Helper function للتحقق من القيمة
+      // ============================================================
+      // ✅ Validation قوي: على الأقل 5 حقول يجب أن تكون مليئة
+      // ============================================================
       const isEmpty = (val: any) => {
         if (!val) return true;
         const strVal = String(val).trim();
@@ -158,27 +160,43 @@ export default function UploadPage() {
                strVal === "undefined";
       };
       
-      // عدد الحقول المهمة الفارغة
-      const vendorEmpty = isEmpty(output["Vendor"]);
-      const invoiceNumEmpty = isEmpty(output["Invoice Number"]);
-      const totalEmpty = isEmpty(output["Total Amount"]);
+      // عد الحقول المليئة
+      const filledFields = [
+        output["Vendor"],
+        output["Invoice Number"],
+        output["Total Amount"],
+        output["Date"],
+        output["Phone"],
+        output["Branch"],
+        output["Tax Number"],
+        output["Payment Method"],
+        output["Subtotal"],
+        output["Tax"]
+      ].filter(val => !isEmpty(val)).length;
       
-      // إذا الـ 3 حقول المهمة كلها فارغة = مش فاتورة!
-      if (vendorEmpty && invoiceNumEmpty && totalEmpty) {
-        throw new Error("❌ الصورة المرفوعة لا تبدو أنها فاتورة!\n\n" +
-                       "الرجاء رفع صورة فاتورة أو إيصال شراء واضح.\n\n" +
-                       "تأكد من:\n" +
-                       "✓ الصورة واضحة وغير مشوشة\n" +
-                       "✓ الصورة تحتوي على فاتورة شراء أو إيصال\n" +
-                       "✓ الفاتورة تحتوي على معلومات واضحة (مبلغ، متجر، تاريخ)");
-      }
-      
-      // Log للتشخيص (سيحذف لاحقاً)
-      console.log("📊 Extracted Data:", {
+      console.log("📊 Validation Check:", {
+        filledFields: filledFields,
         vendor: output["Vendor"],
         total: output["Total Amount"],
+        date: output["Date"],
         invoice_num: output["Invoice Number"]
       });
+      
+      // إذا أقل من 5 حقول مليئة = مش فاتورة!
+      if (filledFields < 5) {
+        throw new Error(
+          "❌ عذراً، لا يمكن قراءة هذه الصورة كفاتورة!\n\n" +
+          "الصورة المرفوعة لا تحتوي على معلومات كافية.\n\n" +
+          "الرجاء التأكد من:\n" +
+          "✓ الصورة تحتوي على فاتورة أو إيصال شراء حقيقي\n" +
+          "✓ الصورة واضحة وتحتوي على:\n" +
+          "  • اسم المتجر\n" +
+          "  • المبلغ الإجمالي\n" +
+          "  • التاريخ\n" +
+          "  • رقم الفاتورة (إن وُجد)\n\n" +
+          "💡 تلميح: لا يمكن رفع صور CV، مستندات نصية، أو صور شخصية."
+        );
+      }
       
       // Set extracted data for editing
       setExtractedData(analyzeData);
@@ -601,16 +619,16 @@ export default function UploadPage() {
                     {/* قائمة العمليات */}
                     <div className="space-y-2 mt-4 text-sm">
                       <div className={`flex items-center gap-2 ${progress >= 5 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                        {progress >= 45 ? '✅' : progress >= 5 ? '⏳' : '⏸️'} رفع الصورة
+                        {progress >= 45 ? '✅' : progress >= 5 ? '⏳' : '⏸️'} رفع الفاتورة
                       </div>
                       <div className={`flex items-center gap-2 ${progress >= 20 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                        {progress >= 45 ? '✅' : progress >= 20 ? '⏳' : '⏸️'} تصحيح الدوران والميل (OpenCV)
+                        {progress >= 45 ? '✅' : progress >= 20 ? '⏳' : '⏸️'} تحسين جودة الصورة
                       </div>
                       <div className={`flex items-center gap-2 ${progress >= 55 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                        {progress >= 95 ? '✅' : progress >= 55 ? '⏳' : '⏸️'} تحليل البيانات بالذكاء الاصطناعي
+                        {progress >= 95 ? '✅' : progress >= 55 ? '⏳' : '⏸️'} قراءة بيانات الفاتورة
                       </div>
                       <div className={`flex items-center gap-2 ${progress >= 100 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                        {progress >= 100 ? '✅' : '⏸️'} تجهيز النتائج
+                        {progress >= 100 ? '✅' : '⏸️'} التحقق من البيانات
                       </div>
                     </div>
                   </motion.div>
