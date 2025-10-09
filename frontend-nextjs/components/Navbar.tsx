@@ -6,19 +6,9 @@ import { FileText, BarChart3, MessageSquare, Upload, Home, Sparkles } from "luci
 import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const links = [
     { href: "/", label: "الرئيسية", icon: Home },
@@ -36,21 +26,17 @@ export default function Navbar() {
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
-            className="w-[120px] sm:w-[140px] md:w-[160px]"
           >
-            {mounted && (
-              <Image
-                src={theme === 'dark' ? '/logo-dark.svg' : '/logo.svg'}
-                alt="مُـــفـــــوْتِــــر"
-                width={160}
-                height={45}
-                priority
-                className="h-8 sm:h-9 md:h-10 w-auto"
-              />
-            )}
-            {!mounted && (
-              <div className="h-8 sm:h-9 md:h-10 w-full bg-transparent" />
-            )}
+            <h1 
+              className="text-2xl sm:text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574]"
+              style={{ 
+                fontFamily: 'var(--font-cairo), Cairo, sans-serif',
+                lineHeight: '1.2',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              مُـــفـــــوْتِـــــر
+            </h1>
           </motion.div>
         </Link>
 
