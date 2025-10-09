@@ -47,17 +47,16 @@ export default function InvoicesPage() {
     setMounted(true);
   }, []);
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
-
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    if (mounted) {
+      fetchInvoices();
+    }
+  }, [mounted]);
 
   // Filter invoices when category changes - FIXED: No duplicates
   useEffect(() => {
+    if (!mounted) return;
+    
     if (!invoices || invoices.length === 0) {
       setFilteredInvoices([]);
       return;
@@ -83,7 +82,12 @@ export default function InvoicesPage() {
       
       setFilteredInvoices(filtered);
     }
-  }, [categoryFilter, invoices]);
+  }, [categoryFilter, invoices, mounted]);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
 
   const fetchInvoices = async () => {
     try {
