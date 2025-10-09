@@ -88,19 +88,23 @@ export default function DashboardPage() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (mounted) {
+      fetchData();
+    }
+  }, [mounted]);
+
+  // Apply filters when any filter changes
+  useEffect(() => {
+    if (mounted) {
+      applyFilters();
+    }
+  }, [categoryFilter, monthFilter, paymentFilter, invoices, mounted]);
+
   // Prevent hydration mismatch
   if (!mounted) {
     return null;
   }
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Apply filters when any filter changes
-  useEffect(() => {
-    applyFilters();
-  }, [categoryFilter, monthFilter, paymentFilter, invoices]);
 
   const fetchData = async () => {
     try {
