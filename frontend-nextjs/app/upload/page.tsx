@@ -148,29 +148,10 @@ export default function UploadPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4 sm:space-y-6 md:space-y-8 py-2 sm:py-4"
       >
-        <div className="flex justify-center mb-2 sm:mb-4">
-          {mounted && (
-            <Image
-              src={theme === "dark" ? "/title-upload-dark.svg" : "/title-upload.svg"}
-              alt="رفع وتحليل الفاتورة"
-              width={650}
-              height={120}
-              className="w-full max-w-2xl h-auto px-4 sm:px-0"
-              priority
-            />
-          )}
-          {!mounted && (
-            <Image
-              src="/title-upload.svg"
-              alt="رفع وتحليل الفاتورة"
-              width={650}
-              height={120}
-              className="w-full max-w-2xl h-auto px-4 sm:px-0"
-              priority
-            />
-          )}
-        </div>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4 sm:px-0">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+          رفع وتحليل الفاتورة
+        </h1>
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
           ارفع صورة أو ملف PDF للفاتورة أو التقطها مباشرة لتحليلها
         </p>
       </motion.div>
@@ -236,27 +217,22 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              <label htmlFor="camera-capture" className="w-full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full gap-2"
-                  asChild
-                >
-                  <span>
+              <div className="w-full">
+                <input
+                  id="camera-capture"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="camera-capture" className="w-full block cursor-pointer">
+                  <div className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors">
                     <Camera className="w-5 h-5" />
-                    التقاط صورة بالكاميرا
-                  </span>
-                </Button>
-              </label>
-              <input
-                id="camera-capture"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+                    <span className="font-medium">التقاط صورة بالكاميرا</span>
+                  </div>
+                </label>
+              </div>
 
               {/* Upload Progress */}
               <AnimatePresence>

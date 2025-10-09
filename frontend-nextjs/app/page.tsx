@@ -91,21 +91,10 @@ export default function Home() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
-                className="w-full max-w-[280px] sm:max-w-[350px] md:max-w-[400px]"
               >
-                {mounted && (
-                  <Image
-                    src={theme === 'dark' ? '/logo-hero-dark.svg' : '/logo-hero.svg'}
-                    alt="مُـــفـــــوْتِــــر"
-                    width={400}
-                    height={120}
-                    priority
-                    className="w-full h-auto"
-                  />
-                )}
-                {!mounted && (
-                  <div className="w-full aspect-[400/120] bg-transparent" />
-                )}
+                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight tracking-tight">
+                  مُـفـــوْتِــر
+                </h1>
               </motion.div>
             </div>
             
@@ -203,28 +192,9 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
           >
-            <div className="flex justify-center mb-2 sm:mb-4 px-4">
-              {mounted && (
-                <Image
-                  src={theme === "dark" ? "/title-how-it-works-dark.svg" : "/title-how-it-works.svg"}
-                  alt="كيف يعمل النظام؟"
-                  width={600}
-                  height={120}
-                  className="w-full max-w-[280px] sm:max-w-md md:max-w-xl lg:max-w-2xl h-auto"
-                  priority
-                />
-              )}
-              {!mounted && (
-                <Image
-                  src="/title-how-it-works.svg"
-                  alt="كيف يعمل النظام؟"
-                  width={600}
-                  height={120}
-                  className="w-full max-w-[280px] sm:max-w-md md:max-w-xl lg:max-w-2xl h-auto"
-                  priority
-                />
-              )}
-            </div>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+              كيف يعمل النظام؟
+            </h2>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
               ثلاث خطوات بسيطة للبدء
             </p>
@@ -296,31 +266,12 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center space-y-8 mb-20 py-4"
+            className="text-center space-y-4 sm:space-y-6 md:space-y-8 mb-12 sm:mb-16 md:mb-20 py-2 sm:py-4"
           >
-            <div className="flex justify-center mb-4">
-              {mounted && (
-                <Image
-                  src={theme === "dark" ? "/title-features-dark.svg" : "/title-features.svg"}
-                  alt="مميزات قوية"
-                  width={400}
-                  height={120}
-                  className="w-full max-w-xl h-auto"
-                  priority
-                />
-              )}
-              {!mounted && (
-                <Image
-                  src="/title-features.svg"
-                  alt="مميزات قوية"
-                  width={400}
-                  height={120}
-                  className="w-full max-w-xl h-auto"
-                  priority
-                />
-              )}
-            </div>
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed tracking-wide">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#8dbcc7] to-[#d4a574] leading-tight px-4">
+              مميزات قوية
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto font-bold leading-relaxed px-4">
               كل ما تحتاجه لإدارة فواتيرك بذكاء
             </p>
           </motion.div>
@@ -408,31 +359,12 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
           >
-            <div className="flex justify-center mb-4">
-              {mounted && (
-                <Image
-                  src={theme === "dark" ? "/title-ready-dark.svg" : "/title-ready.svg"}
-                  alt="جاهز لتنظيم فواتيرك؟"
-                  width={550}
-                  height={120}
-                  className="w-full max-w-2xl h-auto brightness-0 invert"
-                  priority
-                />
-              )}
-              {!mounted && (
-                <Image
-                  src="/title-ready.svg"
-                  alt="جاهز لتنظيم فواتيرك؟"
-                  width={550}
-                  height={120}
-                  className="w-full max-w-2xl h-auto brightness-0 invert"
-                  priority
-                />
-              )}
-            </div>
-            <p className="text-xl md:text-2xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight px-4">
+              جاهز لتنظيم فواتيرك؟
+            </h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-white/95 leading-relaxed max-w-2xl mx-auto font-semibold px-4">
               ابدأ الآن واستمتع بتجربة سهلة وسريعة
             </p>
           </motion.div>
@@ -443,15 +375,16 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
+            className="px-4"
           >
-            <Link href="/upload">
+            <Link href="/upload" className="inline-block w-full sm:w-auto">
               <Button 
                 size="lg"
-                className="gap-3 bg-white text-[#8dbcc7] hover:bg-gray-100 font-black text-2xl px-14 py-9 rounded-2xl shadow-2xl hover:scale-105 transition-all"
+                className="w-full sm:w-auto gap-2 sm:gap-3 bg-white text-[#8dbcc7] hover:bg-gray-100 font-black text-lg sm:text-xl md:text-2xl px-8 sm:px-12 md:px-14 py-6 sm:py-8 md:py-9 rounded-xl sm:rounded-2xl shadow-2xl hover:scale-105 transition-all"
               >
-                <Upload className="w-8 h-8" />
+                <Upload className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
                 <span>ارفع فاتورة الآن</span>
-                <ArrowLeft className="w-7 h-7" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
               </Button>
             </Link>
           </motion.div>
