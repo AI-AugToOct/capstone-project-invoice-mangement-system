@@ -14,6 +14,13 @@ import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -261,10 +268,13 @@ export default function UploadPage() {
         cashier: getCleanValue(analyzeData.output["Cashier"]),
         branch: getCleanValue(analyzeData.output["Branch"]),
         phone: getCleanValue(analyzeData.output["Phone"]),
+        ticket_number: getCleanValue(analyzeData.output["Ticket Number"]),
         subtotal: getNumericValue(analyzeData.output["Subtotal"], "0"),
         tax: getNumericValue(analyzeData.output["Tax"], "0"),
         total_amount: getNumericValue(analyzeData.output["Total Amount"], "0"),
+        grand_total: getNumericValue(analyzeData.output["Grand Total"], "0"),
         discounts: getNumericValue(analyzeData.output["Discounts"], "0"),
+        amount_paid: getNumericValue(analyzeData.output["Amount Paid"], "0"),
         payment_method: getCleanValue(analyzeData.output["Payment Method"]),
         invoice_type: analyzeData.invoice_type || "فاتورة شراء",
         category: analyzeData.category || { ar: "أخرى", en: "Other" },
@@ -486,6 +496,25 @@ export default function UploadPage() {
                   />
                 </div>
                 <div>
+                  <Label>نوع الفاتورة</Label>
+                  <Select 
+                    value={editableData.invoice_type} 
+                    onValueChange={(value) => handleEditChange("invoice_type", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر نوع الفاتورة" />
+                    </SelectTrigger>
+                    <SelectContent dir="rtl">
+                      <SelectItem value="فاتورة شراء">فاتورة شراء</SelectItem>
+                      <SelectItem value="فاتورة ضريبية">فاتورة ضريبية</SelectItem>
+                      <SelectItem value="فاتورة ضمان">فاتورة ضمان</SelectItem>
+                      <SelectItem value="فاتورة صيانة">فاتورة صيانة</SelectItem>
+                      <SelectItem value="إيصال">إيصال</SelectItem>
+                      <SelectItem value="أخرى">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>الرقم الضريبي</Label>
                   <Input
                     value={editableData.tax_number}
@@ -515,6 +544,14 @@ export default function UploadPage() {
                     value={editableData.phone}
                     onChange={(e) => handleEditChange("phone", e.target.value)}
                     placeholder="رقم الهاتف"
+                  />
+                </div>
+                <div>
+                  <Label>رقم التذكرة</Label>
+                  <Input
+                    value={editableData.ticket_number}
+                    onChange={(e) => handleEditChange("ticket_number", e.target.value)}
+                    placeholder="رقم التذكرة (إن وُجد)"
                   />
                 </div>
                 <div>
@@ -561,6 +598,16 @@ export default function UploadPage() {
                     />
                   </div>
                   <div>
+                    <Label>المجموع الكلي (قبل الضريبة)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.grand_total}
+                      onChange={(e) => handleEditChange("grand_total", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
                     <Label className="font-bold">الإجمالي النهائي</Label>
                     <Input
                       type="number"
@@ -571,7 +618,30 @@ export default function UploadPage() {
                       className="font-bold"
                     />
                   </div>
+                  <div>
+                    <Label>المبلغ المدفوع</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={editableData.amount_paid}
+                      onChange={(e) => handleEditChange("amount_paid", e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
+              </div>
+              
+              {/* قسم الرؤية الذكية (Read-only) */}
+              <div className="space-y-2 pt-4 border-t">
+                <h3 className="font-semibold text-lg">💡 الرؤية الذكية (AI Insight)</h3>
+                <div className="p-4 bg-muted/50 rounded-lg border-r-4 border-primary">
+                  <p className="text-sm leading-relaxed" dir="rtl">
+                    {editableData.ai_insight || "لا توجد رؤية متاحة"}
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground italic">
+                  * هذا الحقل تم توليده تلقائياً بواسطة الذكاء الاصطناعي ولا يمكن تعديله
+                </p>
               </div>
 
               {/* قسم العناصر (Items) */}
