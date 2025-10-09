@@ -145,15 +145,22 @@ export default function DashboardPage() {
     // 1. Category filter
     if (categoryFilter !== "all") {
       filtered = filtered.filter((inv) => {
+        // Check category.ar (primary filter - type of store)
+        try {
+          const cat = typeof inv.category === "string" ? JSON.parse(inv.category) : inv.category;
+          if (cat.ar?.trim() === categoryFilter.trim()) {
+            return true;
+          }
+        } catch {
+          // ignore parsing error
+        }
+        
+        // Fallback: check invoice_type (secondary)
         if (inv.invoice_type?.trim() === categoryFilter.trim()) {
           return true;
         }
-        try {
-          const cat = typeof inv.category === "string" ? JSON.parse(inv.category) : inv.category;
-          return cat.ar?.trim() === categoryFilter.trim();
-        } catch {
-          return false;
-        }
+        
+        return false;
       });
     }
 
@@ -482,11 +489,18 @@ export default function DashboardPage() {
                   </SelectTrigger>
                   <SelectContent dir="rtl">
                     <SelectItem value="all">كل الفئات</SelectItem>
-                    <SelectItem value="مطعم">مطاعم</SelectItem>
-                    <SelectItem value="مقهى">مقاهي</SelectItem>
-                    <SelectItem value="صيدلية">صيدليات</SelectItem>
-                    <SelectItem value="تأمين">تأمين</SelectItem>
-                    <SelectItem value="شراء">شراء</SelectItem>
+                    <SelectItem value="مقهى">مقهى</SelectItem>
+                    <SelectItem value="مطعم">مطعم</SelectItem>
+                    <SelectItem value="صيدلية">صيدلية</SelectItem>
+                    <SelectItem value="ملابس">ملابس</SelectItem>
+                    <SelectItem value="بقالة / تموينات">بقالة / تموينات</SelectItem>
+                    <SelectItem value="إلكترونيات">إلكترونيات</SelectItem>
+                    <SelectItem value="فاتورة خدمات">فاتورة خدمات</SelectItem>
+                    <SelectItem value="صحة">صحة</SelectItem>
+                    <SelectItem value="تعليم">تعليم</SelectItem>
+                    <SelectItem value="مواصلات">مواصلات</SelectItem>
+                    <SelectItem value="توصيل">توصيل</SelectItem>
+                    <SelectItem value="أخرى">أخرى</SelectItem>
                   </SelectContent>
                 </Select>
 
