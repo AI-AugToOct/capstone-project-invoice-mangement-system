@@ -83,38 +83,35 @@ async def upload_invoice(file: UploadFile = File(...)):
             file_path = original_filename
             content_type = file.content_type or "image/jpeg"
         
-        # Upload using REST API directly (more reliable than supabase-py)
-        upload_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
-        
-        headers = {
-            "Authorization": f"Bearer {SUPABASE_KEY}",
-            "Content-Type": content_type,
-            "x-upsert": "true"  # Overwrite if exists
-        }
-        
+        # Upload to Supabase Storage using library (with upsert)
         try:
-            logger.info(f"📤 Uploading to: {upload_url}")
+            # First, try to delete if exists
+            try:
+                supabase.storage.from_(BUCKET_NAME).remove([file_path])
+                logger.info(f"🗑️ Removed existing file: {file_path}")
+            except:
+                pass  # File doesn't exist, continue
+            
+            # Now upload
+            logger.info(f"📤 Uploading {file_path} to bucket {BUCKET_NAME}")
             logger.info(f"🔑 Using key ending with: ...{SUPABASE_KEY[-10:]}")
             
-            response = requests.post(
-                upload_url,
-                data=file_bytes,
-                headers=headers,
-                timeout=30
+            res = supabase.storage.from_(BUCKET_NAME).upload(
+                path=file_path,
+                file=file_bytes,
+                file_options={
+                    "content-type": content_type,
+                    "cache-control": "3600",
+                    "upsert": "true"
+                }
             )
             
-            if response.status_code not in [200, 201]:
-                logger.error(f"❌ Upload failed: {response.status_code} - {response.text}")
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Upload failed: {response.text}"
-                )
+            logger.info(f"✅ Upload response: {res}")
             
-            logger.info(f"✅ Upload successful: {response.status_code}")
-            
-        except requests.exceptions.RequestException as e:
-            logger.error(f"❌ Request error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Upload request failed: {str(e)}")
+        except Exception as upload_error:
+            error_msg = str(upload_error)
+            logger.error(f"❌ Supabase upload error: {error_msg}")
+            raise HTTPException(status_code=400, detail=f"Upload failed: {error_msg}")
 
         # Build proper public URL
         public_url = f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_NAME}/{file_path}"
