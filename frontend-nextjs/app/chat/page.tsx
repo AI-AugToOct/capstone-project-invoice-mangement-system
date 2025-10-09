@@ -59,15 +59,15 @@ export default function ChatPage() {
     return null;
   }
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
-
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -90,7 +90,7 @@ export default function ChatPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question: userMessage.content,
+          message: userMessage.content,
         }),
       });
 
