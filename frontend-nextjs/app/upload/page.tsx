@@ -17,9 +17,11 @@ import { Label } from "@/components/ui/label";
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState("");
   const [extractedData, setExtractedData] = useState<any>(null);
   const [editableData, setEditableData] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
@@ -62,9 +64,10 @@ export default function UploadPage() {
     }
 
     try {
-      // Step 1: Upload to Supabase
+      // Step 1: Upload and Auto-Fix
       setUploading(true);
-      setProgress(10);
+      setProgress(5);
+      setProgressMessage("📤 جاري رفع الصورة...");
 
       const formData = new FormData();
       formData.append("file", file);
@@ -81,6 +84,12 @@ export default function UploadPage() {
         throw new Error(errorMessage);
       }
 
+      setProgress(20);
+      setProgressMessage("🔧 جاري معالجة الصورة وتصحيحها...");
+      
+      // محاكاة وقت المعالجة (Backend يعالج الصورة)
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       const uploadData = await uploadResponse.json();
       const uploadedImageUrl = uploadData.url;
       setImageUrl(uploadedImageUrl);
@@ -92,12 +101,17 @@ export default function UploadPage() {
         });
       }
 
-      setProgress(40);
+      setProgress(45);
+      setProgressMessage("✅ تم تصحيح الصورة بنجاح!");
       setUploading(false);
+      
+      // وقت قصير لعرض الرسالة
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Step 2: Analyze with VLM (without saving to DB)
       setAnalyzing(true);
-      setProgress(60);
+      setProgress(55);
+      setProgressMessage("🤖 جاري تحليل الفاتورة بالذكاء الاصطناعي...");
 
       const analyzeResponse = await fetch(`${API_BASE}/vlm/analyze-only`, {
         method: "POST",
@@ -109,6 +123,9 @@ export default function UploadPage() {
         }),
       });
 
+      setProgress(75);
+      setProgressMessage("📊 جاري استخراج البيانات...");
+
       if (!analyzeResponse.ok) {
         const errorData = await analyzeResponse.json().catch(() => ({}));
         const errorMessage = errorData.detail || analyzeResponse.statusText || "فشل تحليل الفاتورة";
@@ -117,7 +134,12 @@ export default function UploadPage() {
       }
 
       const analyzeData = await analyzeResponse.json();
+      setProgress(95);
+      setProgressMessage("✨ جاري تجهيز النتائج...");
+      
+      await new Promise(resolve => setTimeout(resolve, 300));
       setProgress(100);
+      setProgressMessage("🎉 تم بنجاح!");
       
       // Set extracted data for editing
       setExtractedData(analyzeData);
@@ -151,8 +173,10 @@ export default function UploadPage() {
       });
     } finally {
       setUploading(false);
+      setProcessing(false);
       setAnalyzing(false);
       setProgress(0);
+      setProgressMessage("");
     }
   };
 
@@ -503,20 +527,36 @@ export default function UploadPage() {
               </div>
 
               <AnimatePresence>
-                {(uploading || analyzing) && (
+                {(uploading || processing || analyzing) && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="space-y-2"
+                    className="space-y-3"
                   >
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">
-                        {uploading ? "جاري رفع الصورة..." : "جاري التحليل..."}
+                      <span className="font-bold text-base">
+                        {progressMessage || "جاري المعالجة..."}
                       </span>
-                      <span className="text-muted-foreground">{progress}%</span>
+                      <span className="text-muted-foreground font-semibold">{progress}%</span>
                     </div>
-                    <Progress value={progress} />
+                    <Progress value={progress} className="h-3" />
+                    
+                    {/* قائمة العمليات */}
+                    <div className="space-y-2 mt-4 text-sm">
+                      <div className={`flex items-center gap-2 ${progress >= 5 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                        {progress >= 45 ? '✅' : progress >= 5 ? '⏳' : '⏸️'} رفع الصورة
+                      </div>
+                      <div className={`flex items-center gap-2 ${progress >= 20 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                        {progress >= 45 ? '✅' : progress >= 20 ? '⏳' : '⏸️'} تصحيح الدوران والميل (OpenCV)
+                      </div>
+                      <div className={`flex items-center gap-2 ${progress >= 55 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                        {progress >= 95 ? '✅' : progress >= 55 ? '⏳' : '⏸️'} تحليل البيانات بالذكاء الاصطناعي
+                      </div>
+                      <div className={`flex items-center gap-2 ${progress >= 100 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                        {progress >= 100 ? '✅' : '⏸️'} تجهيز النتائج
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -525,9 +565,9 @@ export default function UploadPage() {
                 className="w-full gap-2"
                 size="lg"
                 onClick={handleUpload}
-                disabled={!file || uploading || analyzing}
+                disabled={!file || uploading || processing || analyzing}
               >
-                {uploading || analyzing ? (
+                {uploading || processing || analyzing ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
                     جاري المعالجة...
