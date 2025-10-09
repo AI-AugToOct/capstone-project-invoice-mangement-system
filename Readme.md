@@ -48,29 +48,87 @@
 ## 🏗️ System Architecture
 
 ```mermaid
-graph TD
-    User[👤 User] -->|Uploads Invoice| Frontend[🖥️ Frontend - Next.js]
-    Frontend -->|HTTP POST| Backend[⚡ Backend - FastAPI]
-    Backend -->|Store Image| Supabase_Storage[📦 Supabase Storage]
-    Backend -->|AI Analysis| VLM[🧠 Qwen2.5-VL-32B]
-    VLM -->|Extracted Data| Backend
-    Backend -->|Save| Supabase_DB[🗄️ PostgreSQL + pgvector]
-    Backend -->|Generate| Embeddings[🔢 OpenAI Embeddings]
-    Embeddings -->|Store| Supabase_DB
-    Supabase_DB -->|Query Results| Backend
-    Backend -->|JSON Response| Frontend
-    Frontend -->|Display| Dashboard[📊 Dashboard]
-    Frontend -->|Chat Query| ChatInterface[💬 Chat Bot]
-    ChatInterface -->|RAG + SQL| Backend
-    Backend -->|LLM Call| OpenAI[🤖 GPT-4o-mini]
-    OpenAI -->|Answer| ChatInterface
+graph TB
+    subgraph "Client Layer"
+        USER[👤 End User]
+        BROWSER[🌐 Web Browser]
+    end
     
-    style Frontend fill:#60a5fa
-    style Backend fill:#34d399
-    style VLM fill:#f87171
-    style Supabase_DB fill:#a78bfa
-    style Dashboard fill:#fbbf24
-    style ChatInterface fill:#ec4899
+    subgraph "Frontend - Vercel CDN"
+        NEXTJS[⚛️ Next.js 14]
+        PAGES[📄 Pages]
+        
+        PAGES --> HOME[🏠 Home]
+        PAGES --> UPLOAD[📤 Upload]
+        PAGES --> DASH[📊 Dashboard]
+        PAGES --> CHAT[💬 Chat]
+        PAGES --> INV[📋 Invoices]
+    end
+    
+    subgraph "Backend - Railway"
+        FASTAPI[⚡ FastAPI]
+        ROUTERS[🔀 Routers]
+        
+        ROUTERS --> R_UPLOAD[/upload]
+        ROUTERS --> R_VLM[/vlm]
+        ROUTERS --> R_INV[/invoices]
+        ROUTERS --> R_CHAT[/chat]
+        ROUTERS --> R_DASH[/dashboard]
+    end
+    
+    subgraph "Database - Supabase"
+        POSTGRES[(🗄️ PostgreSQL)]
+        PGVECTOR[(🔢 pgvector)]
+        STORAGE[☁️ Storage]
+    end
+    
+    subgraph "AI Services"
+        FRIENDLI[🧠 Qwen2.5-VL-32B]
+        OPENAI_EMB[🔢 text-embedding-3-small]
+        OPENAI_LLM[🤖 GPT-4o-mini]
+    end
+    
+    subgraph "Image Processing"
+        OPENCV[📐 OpenCV]
+        TESSERACT[🔍 Tesseract]
+    end
+    
+    %% Connections
+    USER --> BROWSER
+    BROWSER --> NEXTJS
+    NEXTJS --> PAGES
+    
+    HOME --> FASTAPI
+    UPLOAD --> FASTAPI
+    DASH --> FASTAPI
+    CHAT --> FASTAPI
+    INV --> FASTAPI
+    
+    FASTAPI --> ROUTERS
+    
+    R_UPLOAD --> OPENCV
+    R_UPLOAD --> TESSERACT
+    R_UPLOAD --> STORAGE
+    
+    R_VLM --> FRIENDLI
+    R_VLM --> STORAGE
+    
+    R_INV --> POSTGRES
+    R_INV --> OPENAI_EMB
+    R_INV --> PGVECTOR
+    
+    R_CHAT --> OPENAI_LLM
+    R_CHAT --> PGVECTOR
+    R_CHAT --> POSTGRES
+    
+    R_DASH --> POSTGRES
+    
+    style NEXTJS fill:#60a5fa
+    style FASTAPI fill:#34d399
+    style POSTGRES fill:#a78bfa
+    style FRIENDLI fill:#f87171
+    style OPENAI_LLM fill:#fbbf24
+    style OPENCV fill:#ec4899
 ```
 
 ---
@@ -339,29 +397,50 @@ graph TD
 
 ---
 
-### 🖼️ **2. Image Auto-Fix Pipeline (OpenCV)**
+### 🖼️ **2. Detailed Image Processing Pipeline**
 
 ```mermaid
-graph LR
-    A[📸 Raw Invoice Image] --> B{Check Orientation}
-    B -->|Rotated| C[🔄 Tesseract OSD Detection]
-    C --> D[Rotate 0°/90°/180°/270°]
-    D --> E{Check Skew}
-    B -->|Not Rotated| E
-    E -->|Skewed| F[📐 Deskew via minAreaRect]
-    F --> G{Check Perspective}
-    E -->|Not Skewed| G
-    G -->|Distorted| H[🔲 Perspective Correction]
-    H --> I[✨ Brightness/Contrast Enhancement]
-    G -->|Not Distorted| I
-    I --> J[✅ Optimized Image]
-    J --> K[📤 Upload to Supabase]
+graph TD
+    START[📱 User Selects Image] --> UPLOAD[📤 Upload to Frontend]
+    UPLOAD --> VALIDATE{File Type?}
+    VALIDATE -->|PDF| PDF_CONV[📄 Convert PDF → JPG]
+    VALIDATE -->|Image| IMG_PROC[🖼️ Process Image]
+    PDF_CONV --> IMG_PROC
     
-    style A fill:#94a3b8
-    style C fill:#fbbf24
-    style F fill:#a78bfa
-    style H fill:#ec4899
-    style J fill:#34d399
+    IMG_PROC --> TEMP[💾 Save to Temp File]
+    TEMP --> OSD[🔍 Tesseract OSD Analysis]
+    
+    OSD --> ANGLE{Rotation Angle?}
+    ANGLE -->|0°| SKIP_ROT[⏭️ Skip Rotation]
+    ANGLE -->|90°/180°/270°| ROTATE[🔄 Rotate Image]
+    ROTATE --> DESKEW_CHECK
+    SKIP_ROT --> DESKEW_CHECK
+    
+    DESKEW_CHECK{Check Tilt} -->|Tilted > 0.5°| DESKEW[📐 Deskew Correction]
+    DESKEW_CHECK -->|Straight| PERSP_CHECK
+    DESKEW --> PERSP_CHECK
+    
+    PERSP_CHECK{Check Perspective} -->|Distorted| PERSP[🔲 Find Corners & Warp]
+    PERSP_CHECK -->|Flat| ENHANCE
+    PERSP --> ENHANCE
+    
+    ENHANCE[✨ Enhance Quality] --> ENHANCE1[📊 Adjust Brightness]
+    ENHANCE1 --> ENHANCE2[📊 Adjust Contrast]
+    ENHANCE2 --> ENHANCE3[🎯 Sharpen Edges]
+    ENHANCE3 --> SAVE_FIXED[💾 Save Fixed Image]
+    
+    SAVE_FIXED --> UPLOAD_CLOUD[☁️ Upload to Supabase Storage]
+    UPLOAD_CLOUD --> GET_URL[🔗 Get Public URL]
+    GET_URL --> CLEANUP[🗑️ Delete Temp File]
+    CLEANUP --> DONE[✅ Ready for VLM Analysis]
+    
+    style START fill:#60a5fa
+    style OSD fill:#fbbf24
+    style ROTATE fill:#a78bfa
+    style DESKEW fill:#ec4899
+    style PERSP fill:#f472b6
+    style UPLOAD_CLOUD fill:#34d399
+    style DONE fill:#10b981
 ```
 
 ---
@@ -502,6 +581,216 @@ graph LR
     style B fill:#34d399
     style C fill:#60a5fa
     style F fill:#fbbf24
+```
+
+---
+
+### 👤 **7. Complete User Journey**
+
+```mermaid
+graph TD
+    VISIT[🌐 User Visits Mufawter.com] --> HOME[🏠 Landing Page]
+    HOME --> CHOICE{What to do?}
+    
+    CHOICE -->|Upload Invoice| UPLOAD_PAGE[📤 Upload Page]
+    CHOICE -->|View Dashboard| DASH_PAGE[📊 Dashboard Page]
+    CHOICE -->|Ask Question| CHAT_PAGE[💬 Chat Page]
+    CHOICE -->|Browse Invoices| INV_PAGE[📋 Invoices Page]
+    
+    %% Upload Flow
+    UPLOAD_PAGE --> SELECT[📁 Select File]
+    SELECT --> UPLOAD_BTN[🔼 Click Upload]
+    UPLOAD_BTN --> PROGRESS[⏳ Show Progress]
+    PROGRESS --> PROG1[10% - Uploading...]
+    PROG1 --> PROG2[40% - Enhancing Image...]
+    PROG2 --> PROG3[70% - Reading Invoice...]
+    PROG3 --> PROG4[100% - Verifying...]
+    PROG4 --> REVIEW[✏️ Review & Edit Form]
+    REVIEW --> USER_EDIT{User Action?}
+    USER_EDIT -->|Edit Fields| EDIT[📝 Modify Data]
+    USER_EDIT -->|Confirm| SAVE[💾 Save to Database]
+    EDIT --> SAVE
+    SAVE --> SUCCESS[✅ Success Message]
+    SUCCESS --> REDIRECT1[↩️ Redirect to Dashboard]
+    
+    %% Dashboard Flow
+    DASH_PAGE --> LOAD_STATS[📊 Load Statistics]
+    LOAD_STATS --> SHOW_CHARTS[📈 Display Charts]
+    SHOW_CHARTS --> INTERACT{User Interaction?}
+    INTERACT -->|Filter by Category| FILTER[🔍 Update Charts]
+    INTERACT -->|Change Date Range| DATE_FILTER[📅 Filter Data]
+    FILTER --> SHOW_CHARTS
+    DATE_FILTER --> SHOW_CHARTS
+    
+    %% Chat Flow
+    CHAT_PAGE --> TYPE[⌨️ Type Question]
+    TYPE --> SEND[📤 Send Message]
+    SEND --> AI_THINK[🤖 AI Processing]
+    AI_THINK --> AI_REPLY[💬 AI Response]
+    AI_REPLY --> MORE_Q{More Questions?}
+    MORE_Q -->|Yes| TYPE
+    MORE_Q -->|No| END_CHAT[👋 End Session]
+    
+    %% Invoices Flow
+    INV_PAGE --> LOAD_INV[📄 Load All Invoices]
+    LOAD_INV --> SHOW_LIST[📋 Display List]
+    SHOW_LIST --> INV_ACTION{User Action?}
+    INV_ACTION -->|Click Invoice| VIEW_DETAIL[🔍 View Details]
+    INV_ACTION -->|Filter| FILTER_INV[🎯 Apply Filters]
+    VIEW_DETAIL --> MODAL[🖼️ Show Modal with Image]
+    MODAL --> CLOSE[❌ Close]
+    FILTER_INV --> SHOW_LIST
+    
+    style HOME fill:#60a5fa
+    style UPLOAD_PAGE fill:#34d399
+    style DASH_PAGE fill:#fbbf24
+    style CHAT_PAGE fill:#ec4899
+    style INV_PAGE fill:#a78bfa
+    style SUCCESS fill:#10b981
+    style SAVE fill:#22c55e
+```
+
+---
+
+### 🚀 **8. Deployment Architecture**
+
+```mermaid
+graph TB
+    subgraph "User Devices"
+        MOBILE[📱 Mobile Browser]
+        DESKTOP[💻 Desktop Browser]
+    end
+    
+    subgraph "Vercel CDN - Frontend"
+        VERCEL[🌐 Next.js App]
+        STATIC[📦 Static Assets]
+        SSR[⚡ Server-Side Rendering]
+    end
+    
+    subgraph "Railway - Backend"
+        DOCKER[🐳 Docker Container]
+        FASTAPI[⚡ FastAPI Server]
+        UVICORN[🚀 Uvicorn ASGI]
+        WORKERS[👥 4 Worker Processes]
+    end
+    
+    subgraph "Supabase - Database & Storage"
+        POSTGRES[(🗄️ PostgreSQL)]
+        PGVECTOR[(🔢 pgvector Extension)]
+        STORAGE[☁️ Storage Buckets]
+        RLS[🔒 Row Level Security]
+    end
+    
+    subgraph "AI Services"
+        FRIENDLI[🧠 FriendliAI<br/>Qwen2.5-VL-32B]
+        OPENAI[🤖 OpenAI<br/>GPT-4o-mini + Embeddings]
+    end
+    
+    subgraph "Monitoring & Logs"
+        VERCEL_LOG[📊 Vercel Logs]
+        RAILWAY_LOG[📊 Railway Logs]
+        SUPA_LOG[📊 Supabase Logs]
+    end
+    
+    %% Connections
+    MOBILE --> VERCEL
+    DESKTOP --> VERCEL
+    VERCEL --> STATIC
+    VERCEL --> SSR
+    SSR --> FASTAPI
+    
+    FASTAPI --> UVICORN
+    UVICORN --> WORKERS
+    WORKERS --> POSTGRES
+    WORKERS --> STORAGE
+    WORKERS --> FRIENDLI
+    WORKERS --> OPENAI
+    
+    POSTGRES --> PGVECTOR
+    POSTGRES --> RLS
+    
+    VERCEL --> VERCEL_LOG
+    DOCKER --> RAILWAY_LOG
+    POSTGRES --> SUPA_LOG
+    
+    style VERCEL fill:#60a5fa
+    style FASTAPI fill:#34d399
+    style POSTGRES fill:#a78bfa
+    style FRIENDLI fill:#f87171
+    style OPENAI fill:#fbbf24
+```
+
+---
+
+### 🔌 **9. API Request/Response Flow**
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User Browser
+    participant F as 🖥️ Frontend (Next.js)
+    participant B as ⚡ Backend (FastAPI)
+    participant S as ☁️ Supabase Storage
+    participant V as 🧠 VLM (FriendliAI)
+    participant D as 🗄️ Database (PostgreSQL)
+    participant E as 🤖 OpenAI Embeddings
+    
+    Note over U,E: Upload Invoice Flow
+    
+    U->>F: 1. Select & Upload Image
+    F->>F: 2. Convert to Base64/Blob
+    F->>B: 3. POST /upload (multipart/form-data)
+    
+    B->>B: 4. Validate File Type
+    B->>B: 5. OpenCV Auto-Fix
+    B->>S: 6. Upload Fixed Image
+    S-->>B: 7. Return Public URL
+    
+    B->>V: 8. POST /analyze (image_url)
+    V->>V: 9. VLM Analysis
+    V-->>B: 10. JSON Response (extracted data)
+    
+    B->>B: 11. Parse & Validate (≥5 fields)
+    
+    alt Valid Invoice
+        B-->>F: 12. Return Extracted Data
+        F->>U: 13. Show Editable Form
+        U->>F: 14. User Edits & Confirms
+        F->>B: 15. POST /invoices/save-analyzed
+        B->>D: 16. INSERT Invoice + Items
+        B->>E: 17. Generate Embedding
+        E-->>B: 18. Return Vector (1536-dim)
+        B->>D: 19. INSERT Embedding
+        D-->>B: 20. Confirm Success
+        B-->>F: 21. Return invoice_id
+        F->>U: 22. Show Success + Redirect
+    else Invalid Invoice
+        B-->>F: 12. Return Error (Not an Invoice)
+        F->>U: 13. Show Error Dialog
+    end
+    
+    Note over U,E: Chat Query Flow
+    
+    U->>F: 1. Type Question
+    F->>B: 2. POST /chat/ask {message}
+    B->>B: 3. Refine Query
+    B->>B: 4. Route (SQL vs RAG)
+    
+    alt SQL Path
+        B->>B: 5. Generate SQL (GPT-4o-mini)
+        B->>D: 6. Execute Safe Query
+        D-->>B: 7. Return Results
+    else RAG Path
+        B->>E: 5. Generate Query Embedding
+        E-->>B: 6. Return Vector
+        B->>D: 7. pgvector Similarity Search
+        D-->>B: 8. Return Top 5 Invoices
+    end
+    
+    B->>B: 9. Validate Results
+    B->>E: 10. Generate Answer (GPT-4o-mini)
+    E-->>B: 11. Arabic Response
+    B-->>F: 12. Return Answer + Context
+    F->>U: 13. Display Message
 ```
 
 ---
