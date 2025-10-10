@@ -202,7 +202,10 @@ def refine_user_query(user_query: str) -> str:
 2. لا تضف معلومات جديدة
 3. فقط نظّف اللهجة وحسّن الصياغة
 4. احتفظ بالكلمات المفتاحية (أسماء المتاجر، الأرقام، التواريخ)
-5. أخرج النص المحسّن فقط، بدون شرح أو تعليق
+5. **إذا كان اسم المتجر طويل، استخرج الاسم الأساسي فقط**
+   - مثال: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية" → "فاتورة جيرة"
+   - مثال: "مؤسسة صب واي للأغذية" → "فاتورة صب واي"
+6. أخرج النص المحسّن فقط، بدون شرح أو تعليق
 
 **السؤال الأصلي:**
 "{user_query}"
@@ -294,7 +297,10 @@ def route_query(refined_query: str) -> RouterDecision:
   * ورّني، شوفني، أريد أن أرى
   * فاتورة من متجر محدد (مثلاً: "فاتورة كتا" "فاتورة صب واي")
   * أو أي طلب للبحث عن فاتورة معينة
-- **requested_vendor**: اكتب اسم المتجر إذا ذُكر (مثلاً: كتا، صب واي، جرير، بنده، etc.)
+- **requested_vendor**: استخرج اسم المتجر الأساسي فقط:
+  * إذا كان الاسم طويل (مثل: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية") → أكتب "جيرة"
+  * إذا كان بسيط (مثل: "كتا") → أكتب "كتا"
+  * أمثلة: كتا، صب واي، جرير، بنده، جيرة، الدانوب، etc.
 
 **السؤال:**
 "{refined_query}"
@@ -415,7 +421,7 @@ SQL: SELECT * FROM invoices WHERE is_valid_invoice = true ORDER BY CAST(total_am
         
         response = client.chat.completions.create(
             model=LLM_MODEL,
-            messages=[
+                messages=[
                 {"role": "system", "content": "أنت خبير SQL. أخرج SQL فقط."},
                 {"role": "user", "content": sql_prompt}
             ],
@@ -523,6 +529,42 @@ def execute_rag(refined_query: str, db: Session, top_k: int = 5) -> List[Dict]:
         
     except Exception as e:
         logger.error(f"❌ RAG execution failed: {e}")
+        
+        # Fallback: Try SQL search with ILIKE for vendor name
+        try:
+            logger.info("🔄 Falling back to SQL ILIKE search...")
+            
+            # Extract potential vendor name from query
+            vendor_keywords = refined_query.replace("فاتورة", "").replace("صورة", "").replace("ابي", "").replace("وريني", "").strip()
+            
+            if vendor_keywords:
+                sql_fallback = text("""
+                    SELECT *
+                    FROM invoices
+                    WHERE is_valid_invoice = true
+                    AND (
+                        vendor ILIKE :keyword
+                        OR vendor ILIKE :keyword_with_percent
+                    )
+                    ORDER BY created_at DESC
+                    LIMIT :limit
+                """)
+                
+                rows = db.execute(
+                    sql_fallback, 
+                    {
+                        "keyword": f"%{vendor_keywords}%",
+                        "keyword_with_percent": f"{vendor_keywords}%",
+                        "limit": top_k
+                    }
+                ).fetchall()
+                
+                results = [serialize_for_json(dict(row._mapping)) for row in rows]
+                logger.info(f"✅ SQL Fallback returned {len(results)} results")
+                return results
+        except Exception as fallback_error:
+            logger.error(f"❌ SQL Fallback also failed: {fallback_error}")
+        
         return []
 
 
@@ -681,7 +723,7 @@ def generate_reply(refined_query: str, results: List[Dict], decision: RouterDeci
         
         response = client.chat.completions.create(
             model=LLM_MODEL,
-            messages=[
+                messages=[
                 {
                     "role": "system",
                     "content": """أنت مساعد ذكي في نظام مُفَوْتِر.
@@ -782,7 +824,7 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
                 
                 if formatted.get("id") and formatted.get("vendor"):
                     invoices_for_display.append(formatted)
-        
+            
         # ════════════════════════════════════════════════════════════════════
         # Save to context
         # ════════════════════════════════════════════════════════════════════
@@ -804,7 +846,7 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
         logger.info(f"   Invoices to display: {len(invoices_for_display)}")
         logger.info(f"   Reply: {final_reply[:100]}...")
         logger.info("="*80)
-        
+
         return {
             "reply": final_reply,
             "invoices": invoices_for_display if invoices_for_display else None,
@@ -814,7 +856,7 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
             "is_valid": is_valid,
             "refined_query": refined_query
         }
-        
+
     except Exception as e:
         logger.error("="*80)
         logger.error(f"❌ CHAT ERROR: {e}")
@@ -857,4 +899,4 @@ async def health_check():
         "status": "healthy",
         "service": "مُفَوْتِر Chat AI",
         "version": "2.0.0"
-    }
+        }
