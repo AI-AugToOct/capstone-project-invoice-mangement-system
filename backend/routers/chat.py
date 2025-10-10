@@ -116,6 +116,10 @@ def serialize_for_json(obj: Any) -> Any:
 
 def format_invoice_for_frontend(invoice_data: dict) -> dict:
     """Format invoice data for frontend display with guaranteed image_url"""
+    
+    # Get image_url from raw data
+    raw_image_url = invoice_data.get("image_url")
+    
     formatted = {
         "id": invoice_data.get("id"),
         "vendor": invoice_data.get("vendor") or "متجر غير معروف",
@@ -125,15 +129,19 @@ def format_invoice_for_frontend(invoice_data: dict) -> dict:
         "total": str(invoice_data.get("total_amount") or invoice_data.get("total") or "0"),
         "tax": str(invoice_data.get("tax") or "0"),
         "payment_method": invoice_data.get("payment_method"),
-        "image_url": invoice_data.get("image_url") or "",
+        "image_url": raw_image_url if raw_image_url else "",  # Keep empty string, not None
         "category": invoice_data.get("category"),
         "ai_insight": invoice_data.get("ai_insight"),
     }
     
+    logger.info(f"🖼️ Formatted Invoice {formatted['id']} | Vendor: {formatted['vendor']}")
+    logger.info(f"   Raw image_url: {raw_image_url}")
+    logger.info(f"   Formatted image_url: {formatted['image_url']}")
+    
     if formatted["image_url"]:
-        logger.debug(f"🖼️ Invoice {formatted['id']} | Vendor: {formatted['vendor']} | Has Image: ✅")
+        logger.info(f"   ✅ Has Image URL")
     else:
-        logger.warning(f"⚠️ Invoice {formatted['id']} | Vendor: {formatted['vendor']} | No Image URL")
+        logger.warning(f"   ⚠️ NO Image URL!")
     
     return formatted
 
@@ -881,27 +889,49 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
         invoices_for_display = []
         if decision.show_images and results:
             logger.info(f"🖼️ Preparing to display {len(results)} invoices (show_images=True)")
-            for item in results:
+            logger.info(f"🔍 Requested vendor filter: {decision.requested_vendor}")
+            
+            for idx, item in enumerate(results, 1):
+                logger.info(f"\n   📋 Processing invoice #{idx}:")
+                logger.info(f"      ID: {item.get('id')}")
+                logger.info(f"      Vendor: {item.get('vendor')}")
+                logger.info(f"      Image URL: {item.get('image_url')[:50] if item.get('image_url') else 'MISSING!'}")
+                
                 formatted = format_invoice_for_frontend(item)
                 
-                # Filter by requested vendor if specified
+                # Filter by requested vendor if specified (more flexible matching)
                 if decision.requested_vendor:
                     item_vendor = (item.get("vendor") or "").lower()
                     vendor_filter = decision.requested_vendor.lower()
                     
-                    logger.debug(f"   Filtering: '{vendor_filter}' in '{item_vendor}'?")
+                    logger.info(f"      Filtering: '{vendor_filter}' in '{item_vendor}'?")
                     
-                    if vendor_filter not in item_vendor:
-                        logger.debug(f"   ❌ Skipped: {item.get('vendor')} (filter mismatch)")
-                        continue
+                    # More flexible matching: check if vendor_filter is in item_vendor OR vice versa
+                    if vendor_filter in item_vendor or item_vendor in vendor_filter:
+                        logger.info(f"      ✅ Matched!")
                     else:
-                        logger.debug(f"   ✅ Matched: {item.get('vendor')}")
+                        logger.info(f"      ❌ Skipped (filter mismatch)")
+                        continue
                 
-                if formatted.get("id") and formatted.get("vendor") and formatted.get("image_url"):
-                    invoices_for_display.append(formatted)
-                    logger.info(f"   📸 Added invoice: {formatted.get('vendor')} (ID: {formatted.get('id')})")
-                elif not formatted.get("image_url"):
-                    logger.warning(f"   ⚠️ Skipped invoice {formatted.get('id')}: No image_url")
+                # Check all required fields
+                if not formatted.get("id"):
+                    logger.warning(f"      ⚠️ Skipped: Missing ID")
+                    continue
+                    
+                if not formatted.get("vendor"):
+                    logger.warning(f"      ⚠️ Skipped: Missing vendor")
+                    continue
+                    
+                if not formatted.get("image_url"):
+                    logger.warning(f"      ⚠️ Skipped: No image_url")
+                    continue
+                
+                # All checks passed!
+                invoices_for_display.append(formatted)
+                logger.info(f"      ✅ ADDED TO DISPLAY! (ID: {formatted.get('id')})")
+                
+            logger.info(f"\n📊 Final count: {len(invoices_for_display)} invoices added to display")
+            
         elif not decision.show_images:
             logger.info(f"🖼️ show_images=False, not displaying invoice images")
         elif not results:
