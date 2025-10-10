@@ -934,6 +934,19 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
                 
             logger.info(f"\n📊 Final count: {len(invoices_for_display)} invoices added to display")
             
+            # FALLBACK: If no invoices added but we have results with images, add them anyway!
+            if len(invoices_for_display) == 0 and results:
+                logger.warning(f"⚠️ FALLBACK: No invoices added through filtering, trying without filter...")
+                for idx, item in enumerate(results, 1):
+                    if item.get("image_url"):
+                        formatted = format_invoice_for_frontend(item)
+                        if formatted.get("id") and formatted.get("vendor"):
+                            invoices_for_display.append(formatted)
+                            logger.info(f"   🆘 FALLBACK: Added invoice {formatted.get('id')} without filter")
+                            if len(invoices_for_display) >= 3:  # Limit to 3
+                                break
+                logger.info(f"📊 After fallback: {len(invoices_for_display)} invoices added")
+            
         elif not decision.show_images:
             logger.info(f"🖼️ show_images=False, not displaying invoice images")
         elif not results:
