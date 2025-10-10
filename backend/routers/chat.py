@@ -201,10 +201,13 @@ def refine_user_query(user_query: str) -> str:
 1. لا تغيّر نية المستخدم أو معنى السؤال
 2. لا تضف معلومات جديدة
 3. فقط نظّف اللهجة وحسّن الصياغة
-4. احتفظ بالكلمات المفتاحية (أسماء المتاجر، الأرقام، التواريخ)
+4. **احتفظ بالكلمات المفتاحية كما هي EXACTLY** (أسماء المتاجر بالإنجليزية أو العربية، الأرقام، التواريخ)
+   - مثال: "Keeta" → أبقِها "Keeta" (لا تغيرها)
+   - مثال: "كتا" → أبقِها "كتا"
 5. **إذا كان اسم المتجر طويل، استخرج الاسم الأساسي فقط**
    - مثال: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية" → "فاتورة جيرة"
    - مثال: "مؤسسة صب واي للأغذية" → "فاتورة صب واي"
+   - مثال: "Keeta Restaurant" → "فاتورة Keeta"
 6. أخرج النص المحسّن فقط، بدون شرح أو تعليق
 
 **السؤال الأصلي:**
@@ -531,63 +534,92 @@ def execute_rag(refined_query: str, db: Session, top_k: int = 5) -> List[Dict]:
     except Exception as e:
         logger.error(f"❌ RAG execution failed: {e}")
         
-        # Fallback: Enhanced SQL search with ILIKE across all relevant fields
+        # Fallback: Super flexible SQL search
         try:
-            logger.info("🔄 Falling back to Enhanced SQL ILIKE search...")
+            logger.info("🔄 Falling back to Super Flexible SQL search...")
             
-            # Clean keywords
-            keywords = refined_query.replace("فاتورة", "").replace("صورة", "").replace("ابي", "").replace("وريني", "").replace("مطعم", "").strip()
+            # Clean keywords - remove ALL Arabic filter words
+            keywords = (refined_query
+                       .replace("فاتورة", "")
+                       .replace("صورة", "")
+                       .replace("ابي", "")
+                       .replace("وريني", "")
+                       .replace("مطعم", "")
+                       .replace("متجر", "")
+                       .replace("من", "")
+                       .replace("في", "")
+                       .strip())
             
-            if not keywords:
-                # If no keywords, return recent invoices
-                logger.info("📋 No keywords found, returning recent invoices...")
-                keywords = ""
+            logger.info(f"🔍 Original query: '{refined_query}'")
+            logger.info(f"🔍 Extracted keywords: '{keywords}'")
             
-            logger.info(f"🔍 Searching with keywords: '{keywords}'")
-            
-            sql_fallback = text("""
-                SELECT *
-                FROM invoices
-                WHERE is_valid_invoice = true
-                AND image_url IS NOT NULL
-                AND (
-                    :keyword = ''
-                    OR vendor ILIKE :keyword_pattern
-                    OR category::text ILIKE :keyword_pattern
-                    OR invoice_type ILIKE :keyword_pattern
-                    OR branch ILIKE :keyword_pattern
-                )
-                ORDER BY 
-                    CASE 
-                        WHEN vendor ILIKE :keyword_start THEN 1
-                        WHEN vendor ILIKE :keyword_pattern THEN 2
-                        ELSE 3
-                    END,
-                    created_at DESC
-                LIMIT :limit
-            """)
-            
-            rows = db.execute(
-                sql_fallback, 
-                {
-                    "keyword": keywords,
-                    "keyword_pattern": f"%{keywords}%",
-                    "keyword_start": f"{keywords}%",
-                    "limit": top_k
-                }
-            ).fetchall()
+            # If still empty after cleaning, try to get ALL invoices with images
+            if not keywords or len(keywords) < 2:
+                logger.warning("⚠️ No valid keywords, returning ALL recent invoices with images...")
+                sql_fallback = text("""
+                    SELECT *
+                    FROM invoices
+                    WHERE is_valid_invoice = true
+                    AND image_url IS NOT NULL
+                    ORDER BY created_at DESC
+                    LIMIT :limit
+                """)
+                
+                rows = db.execute(sql_fallback, {"limit": top_k}).fetchall()
+            else:
+                # Search in ALL text fields with maximum flexibility
+                sql_fallback = text("""
+                    SELECT i.*, e.invoice_text
+                    FROM invoices i
+                    LEFT JOIN embeddings e ON i.id = e.invoice_id
+                    WHERE i.is_valid_invoice = true
+                    AND i.image_url IS NOT NULL
+                    AND (
+                        LOWER(i.vendor) LIKE LOWER(:keyword_pattern)
+                        OR LOWER(i.category::text) LIKE LOWER(:keyword_pattern)
+                        OR LOWER(i.invoice_type) LIKE LOWER(:keyword_pattern)
+                        OR LOWER(i.branch) LIKE LOWER(:keyword_pattern)
+                        OR LOWER(i.invoice_number) LIKE LOWER(:keyword_pattern)
+                        OR LOWER(e.invoice_text) LIKE LOWER(:keyword_pattern)
+                    )
+                    ORDER BY 
+                        CASE 
+                            WHEN LOWER(i.vendor) LIKE LOWER(:keyword_start) THEN 1
+                            WHEN LOWER(i.vendor) LIKE LOWER(:keyword_pattern) THEN 2
+                            WHEN LOWER(e.invoice_text) LIKE LOWER(:keyword_pattern) THEN 3
+                            ELSE 4
+                        END,
+                        i.created_at DESC
+                    LIMIT :limit
+                """)
+                
+                rows = db.execute(
+                    sql_fallback, 
+                    {
+                        "keyword_pattern": f"%{keywords}%",
+                        "keyword_start": f"{keywords}%",
+                        "limit": top_k * 2  # Get more results for better matching
+                    }
+                ).fetchall()
             
             results = [serialize_for_json(dict(row._mapping)) for row in rows]
             logger.info(f"✅ SQL Fallback returned {len(results)} results")
             
             if results:
-                for i, item in enumerate(results[:3], 1):
-                    logger.info(f"   {i}. {item.get('vendor', 'Unknown')} (has image: {bool(item.get('image_url'))})")
+                logger.info("📋 Top results:")
+                for i, item in enumerate(results[:5], 1):
+                    vendor = item.get('vendor', 'Unknown')
+                    has_image = bool(item.get('image_url'))
+                    logger.info(f"   {i}. {vendor} (image: {has_image})")
+            else:
+                logger.warning(f"⚠️ No results found for keywords: '{keywords}'")
             
-            return results
+            return results[:top_k]  # Return only top_k results
             
         except Exception as fallback_error:
-            logger.error(f"❌ SQL Fallback also failed: {fallback_error}")
+            logger.error(f"❌ SQL Fallback failed: {fallback_error}")
+            import traceback
+            logger.error(f"Stack trace: {traceback.format_exc()}")
         
         return []
 
