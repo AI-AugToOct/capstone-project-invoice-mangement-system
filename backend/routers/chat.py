@@ -115,31 +115,33 @@ def serialize_for_json(obj: Any) -> Any:
 
 
 def format_invoice_for_frontend(invoice_data: dict) -> dict:
-    """Format invoice data for frontend display with guaranteed image_url"""
+    """Format invoice data for frontend display - MATCHES frontend expectations exactly"""
     
     # Get image_url from raw data
     raw_image_url = invoice_data.get("image_url")
     
+    # Frontend expects these EXACT field names (same as /invoices/all endpoint)
     formatted = {
         "id": invoice_data.get("id"),
         "vendor": invoice_data.get("vendor") or "متجر غير معروف",
         "invoice_number": invoice_data.get("invoice_number"),
         "invoice_type": invoice_data.get("invoice_type"),
-        "date": invoice_data.get("invoice_date") or invoice_data.get("date"),
-        "total": str(invoice_data.get("total_amount") or invoice_data.get("total") or "0"),
+        "invoice_date": invoice_data.get("invoice_date"),  # ✅ Changed from "date"
+        "total_amount": str(invoice_data.get("total_amount") or "0"),  # ✅ Changed from "total"
         "tax": str(invoice_data.get("tax") or "0"),
         "payment_method": invoice_data.get("payment_method"),
-        "image_url": raw_image_url if raw_image_url else "",  # Keep empty string, not None
+        "image_url": raw_image_url if raw_image_url else "",
         "category": invoice_data.get("category"),
         "ai_insight": invoice_data.get("ai_insight"),
     }
     
     logger.info(f"🖼️ Formatted Invoice {formatted['id']} | Vendor: {formatted['vendor']}")
-    logger.info(f"   Raw image_url: {raw_image_url}")
-    logger.info(f"   Formatted image_url: {formatted['image_url']}")
+    logger.info(f"   invoice_date: {formatted['invoice_date']}")
+    logger.info(f"   total_amount: {formatted['total_amount']} ﷼")
+    logger.info(f"   image_url: {formatted['image_url'][:50] if formatted['image_url'] else 'MISSING'}")
     
     if formatted["image_url"]:
-        logger.info(f"   ✅ Has Image URL")
+        logger.info(f"   ✅ Complete invoice data")
     else:
         logger.warning(f"   ⚠️ NO Image URL!")
     
