@@ -292,11 +292,12 @@ def route_query(refined_query: str) -> RouterDecision:
    - مثال: "وش الطقس اليوم؟" "كيف حالك؟"
 
 **إضافي:**
-- **show_images**: اجعلها true إذا كان السؤال يطلب:
-  * صورة أو صور (image/images)
-  * ورّني، شوفني، أريد أن أرى
-  * فاتورة من متجر محدد (مثلاً: "فاتورة كتا" "فاتورة صب واي")
-  * أو أي طلب للبحث عن فاتورة معينة
+- **show_images**: اجعلها true في هذه الحالات:
+  * صورة أو صور (image/images) 
+  * ورّني، شوفني، أريد أن أرى، ابي
+  * فاتورة من متجر محدد (مثلاً: "فاتورة كتا" "فاتورة صب واي" "فاتورة مطعم")
+  * أي سؤال عن فاتورة معينة (اسم متجر، نوع متجر، فرع)
+  * **افتراضياً اجعلها true إلا للأسئلة الإحصائية فقط** (كم عدد، كم مجموع)
 - **requested_vendor**: استخرج اسم المتجر الأساسي فقط:
   * إذا كان الاسم طويل (مثل: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية") → أكتب "جيرة"
   * إذا كان بسيط (مثل: "كتا") → أكتب "كتا"
@@ -530,38 +531,61 @@ def execute_rag(refined_query: str, db: Session, top_k: int = 5) -> List[Dict]:
     except Exception as e:
         logger.error(f"❌ RAG execution failed: {e}")
         
-        # Fallback: Try SQL search with ILIKE for vendor name
+        # Fallback: Enhanced SQL search with ILIKE across all relevant fields
         try:
-            logger.info("🔄 Falling back to SQL ILIKE search...")
+            logger.info("🔄 Falling back to Enhanced SQL ILIKE search...")
             
-            # Extract potential vendor name from query
-            vendor_keywords = refined_query.replace("فاتورة", "").replace("صورة", "").replace("ابي", "").replace("وريني", "").strip()
+            # Clean keywords
+            keywords = refined_query.replace("فاتورة", "").replace("صورة", "").replace("ابي", "").replace("وريني", "").replace("مطعم", "").strip()
             
-            if vendor_keywords:
-                sql_fallback = text("""
-                    SELECT *
-                    FROM invoices
-                    WHERE is_valid_invoice = true
-                    AND (
-                        vendor ILIKE :keyword
-                        OR vendor ILIKE :keyword_with_percent
-                    )
-                    ORDER BY created_at DESC
-                    LIMIT :limit
-                """)
-                
-                rows = db.execute(
-                    sql_fallback, 
-                    {
-                        "keyword": f"%{vendor_keywords}%",
-                        "keyword_with_percent": f"{vendor_keywords}%",
-                        "limit": top_k
-                    }
-                ).fetchall()
-                
-                results = [serialize_for_json(dict(row._mapping)) for row in rows]
-                logger.info(f"✅ SQL Fallback returned {len(results)} results")
-                return results
+            if not keywords:
+                # If no keywords, return recent invoices
+                logger.info("📋 No keywords found, returning recent invoices...")
+                keywords = ""
+            
+            logger.info(f"🔍 Searching with keywords: '{keywords}'")
+            
+            sql_fallback = text("""
+                SELECT *
+                FROM invoices
+                WHERE is_valid_invoice = true
+                AND image_url IS NOT NULL
+                AND (
+                    :keyword = ''
+                    OR vendor ILIKE :keyword_pattern
+                    OR category::text ILIKE :keyword_pattern
+                    OR invoice_type ILIKE :keyword_pattern
+                    OR branch ILIKE :keyword_pattern
+                )
+                ORDER BY 
+                    CASE 
+                        WHEN vendor ILIKE :keyword_start THEN 1
+                        WHEN vendor ILIKE :keyword_pattern THEN 2
+                        ELSE 3
+                    END,
+                    created_at DESC
+                LIMIT :limit
+            """)
+            
+            rows = db.execute(
+                sql_fallback, 
+                {
+                    "keyword": keywords,
+                    "keyword_pattern": f"%{keywords}%",
+                    "keyword_start": f"{keywords}%",
+                    "limit": top_k
+                }
+            ).fetchall()
+            
+            results = [serialize_for_json(dict(row._mapping)) for row in rows]
+            logger.info(f"✅ SQL Fallback returned {len(results)} results")
+            
+            if results:
+                for i, item in enumerate(results[:3], 1):
+                    logger.info(f"   {i}. {item.get('vendor', 'Unknown')} (has image: {bool(item.get('image_url'))})")
+            
+            return results
+            
         except Exception as fallback_error:
             logger.error(f"❌ SQL Fallback also failed: {fallback_error}")
         
@@ -603,7 +627,7 @@ def execute_hybrid(refined_query: str, db: Session) -> List[Dict]:
 
 def execute_query(refined_query: str, decision: RouterDecision, db: Session) -> List[Dict]:
     """
-    🚀 Main executor function that routes to appropriate execution method
+    🚀 Main executor - ALWAYS uses RAG/Embeddings with SQL fallback
     
     Args:
         refined_query: السؤال المحسّن
@@ -613,24 +637,14 @@ def execute_query(refined_query: str, decision: RouterDecision, db: Session) -> 
     Returns:
         List of results
     """
-    logger.info(f"🚀 Starting Executor Stage (mode: {decision.mode})...")
+    logger.info(f"🚀 Starting RAG Executor (embeddings-based search)...")
     
     if decision.mode == "none":
         logger.info("ℹ️ Query is out of scope (mode: none)")
         return []
     
-    elif decision.mode == "deep_sql":
-        return execute_deep_sql(refined_query, db)
-    
-    elif decision.mode == "rag":
-        return execute_rag(refined_query, db)
-    
-    elif decision.mode == "hybrid":
-        return execute_hybrid(refined_query, db)
-    
-    else:
-        logger.warning(f"⚠️ Unknown mode: {decision.mode}, defaulting to hybrid")
-        return execute_hybrid(refined_query, db)
+    # ALWAYS use RAG (embeddings + SQL fallback)
+    return execute_rag(refined_query, db)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ✅ STAGE 4: Validator
