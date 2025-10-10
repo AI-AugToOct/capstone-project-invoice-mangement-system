@@ -459,8 +459,7 @@ SQL: SELECT * FROM invoices WHERE is_valid_invoice = true ORDER BY CAST(total_am
 
 def execute_rag(refined_query: str, db: Session, top_k: int = 5) -> List[Dict]:
     """
-    🔍 Execute RAG (Retrieval-Augmented Generation) using SQL-based search
-    Note: embeddings table doesn't exist in production, using basic SQL search instead
+    🔍 Execute RAG (Retrieval-Augmented Generation) using embeddings
     
     Args:
         refined_query: السؤال المحسّن
@@ -468,85 +467,77 @@ def execute_rag(refined_query: str, db: Session, top_k: int = 5) -> List[Dict]:
         top_k: Number of top results to return
     
     Returns:
-        List of matching invoices
+        List of semantically similar invoices
     """
-    logger.info("🔍 Executing RAG (SQL-based Search)...")
+    logger.info("🔍 Executing RAG (Semantic Search with embeddings)...")
     
     try:
-        # Clean keywords - remove ALL Arabic filter words
-        keywords = (refined_query
-                   .replace("فاتورة", "")
-                   .replace("صورة", "")
-                   .replace("ابي", "")
-                   .replace("وريني", "")
-                   .replace("أريد", "")
-                   .replace("مطعم", "")
-                   .replace("متجر", "")
-                   .replace("من", "")
-                   .replace("في", "")
-                   .replace("كم", "")
-                   .replace("أنفقت", "")
-                   .replace("على", "")
-                   .replace("؟", "")
-                   .strip())
+        # Generate embedding for user query
+        embedding_response = client.embeddings.create(
+            model=EMBEDDING_MODEL,
+            input=refined_query
+        )
         
-        logger.info(f"🔍 Original query: '{refined_query}'")
-        logger.info(f"🔍 Extracted keywords: '{keywords}'")
+        query_embedding = np.array(embedding_response.data[0].embedding)
+        logger.info(f"✅ Generated query embedding (dim: {len(query_embedding)})")
         
-        # If no keywords, return all recent invoices with images
-        if not keywords or len(keywords) < 2:
-            logger.warning("⚠️ No valid keywords, returning recent invoices...")
-            sql = text("""
-                SELECT *
-                FROM invoices
-                WHERE is_valid_invoice = true
-                AND image_url IS NOT NULL
-                ORDER BY created_at DESC
-                LIMIT :limit
-            """)
+        # Get all invoices with embeddings - CORRECT TABLE NAME!
+        sql = text("""
+            SELECT i.*, e.embedding
+            FROM invoices i
+            LEFT JOIN invoice_embeddings e ON i.id = e.invoice_id
+            WHERE i.is_valid_invoice = true
+            AND e.embedding IS NOT NULL
+            AND i.image_url IS NOT NULL
+        """)
+        
+        rows = db.execute(sql).fetchall()
+        logger.info(f"📊 Found {len(rows)} invoices with embeddings")
+        
+        if not rows:
+            logger.warning("⚠️ No invoices with embeddings found")
+            return []
+        
+        # Calculate similarities using pgvector
+        similarities = []
+        for row in rows:
+            row_dict = dict(row._mapping)
             
-            rows = db.execute(sql, {"limit": top_k}).fetchall()
-        else:
-            # Search in basic invoice fields
-            sql = text("""
-                SELECT *
-                FROM invoices
-                WHERE is_valid_invoice = true
-                AND image_url IS NOT NULL
-                AND (
-                    LOWER(vendor) LIKE LOWER(:keyword_pattern)
-                    OR LOWER(category::text) LIKE LOWER(:keyword_pattern)
-                    OR LOWER(invoice_type) LIKE LOWER(:keyword_pattern)
-                    OR LOWER(branch) LIKE LOWER(:keyword_pattern)
-                    OR LOWER(invoice_number) LIKE LOWER(:keyword_pattern)
-                )
-                ORDER BY 
-                    CASE 
-                        WHEN LOWER(vendor) LIKE LOWER(:keyword_start) THEN 1
-                        WHEN LOWER(vendor) LIKE LOWER(:keyword_pattern) THEN 2
-                        ELSE 3
-                    END,
-                    created_at DESC
-                LIMIT :limit
-            """)
+            # Parse embedding (pgvector returns it as a list)
+            embedding_data = row_dict.get('embedding')
+            if not embedding_data:
+                continue
             
-            rows = db.execute(
-                sql,
-                {
-                    "keyword_pattern": f"%{keywords}%",
-                    "keyword_start": f"{keywords}%",
-                    "limit": top_k * 2
-                }
-            ).fetchall()
+            try:
+                # Convert to numpy array if it's a list
+                if isinstance(embedding_data, list):
+                    invoice_embedding = np.array(embedding_data)
+                elif isinstance(embedding_data, str):
+                    invoice_embedding = np.array(json.loads(embedding_data))
+                else:
+                    invoice_embedding = np.array(embedding_data)
+                
+                similarity = cosine_similarity(query_embedding, invoice_embedding)
+                
+                similarities.append({
+                    'invoice': row_dict,
+                    'similarity': float(similarity)
+                })
+            except Exception as e:
+                logger.debug(f"Failed to process embedding for invoice {row_dict.get('id')}: {e}")
+                continue
         
-        results = [serialize_for_json(dict(row._mapping)) for row in rows]
+        # Sort by similarity and get top_k
+        similarities.sort(key=lambda x: x['similarity'], reverse=True)
+        top_results = similarities[:top_k]
+        
+        results = [item['invoice'] for item in top_results]
         
         logger.info(f"✅ RAG returned {len(results)} results")
-        if results:
-            for i, item in enumerate(results[:3], 1):
-                logger.info(f"   {i}. {item.get('vendor', 'Unknown')} (has image: {bool(item.get('image_url'))})")
+        for i, item in enumerate(top_results[:3], 1):
+            logger.info(f"   {i}. {item['invoice'].get('vendor', 'Unknown')} (similarity: {item['similarity']:.3f})")
         
-        return results[:top_k]
+        return results
     
     except Exception as e:
         logger.error(f"❌ RAG execution failed: {e}")
