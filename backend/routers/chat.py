@@ -247,7 +247,7 @@ class RouterDecision(BaseModel):
     """Router decision model"""
     mode: Literal["deep_sql", "rag", "hybrid", "none"]
     reason: str
-    show_images: bool = False
+    show_images: bool = True  # Default to True for invoice-related queries
     requested_vendor: Optional[str] = None
 
 
@@ -295,16 +295,22 @@ def route_query(refined_query: str) -> RouterDecision:
    - مثال: "وش الطقس اليوم؟" "كيف حالك؟"
 
 **إضافي:**
-- **show_images**: اجعلها true في هذه الحالات:
-  * صورة أو صور (image/images) 
-  * ورّني، شوفني، أريد أن أرى، ابي
-  * فاتورة من متجر محدد (مثلاً: "فاتورة كتا" "فاتورة صب واي" "فاتورة مطعم")
-  * أي سؤال عن فاتورة معينة (اسم متجر، نوع متجر، فرع)
-  * **افتراضياً اجعلها true إلا للأسئلة الإحصائية فقط** (كم عدد، كم مجموع)
-- **requested_vendor**: استخرج اسم المتجر الأساسي فقط:
-  * إذا كان الاسم طويل (مثل: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية") → أكتب "جيرة"
-  * إذا كان بسيط (مثل: "كتا") → أكتب "كتا"
-  * أمثلة: كتا، صب واي، جرير، بنده، جيرة، الدانوب، etc.
+- **show_images**: 
+  * **DEFAULT = true** (افتراضياً لكل سؤال عن فواتير)
+  * اجعلها false ONLY في حالات:
+    - أسئلة إحصائية بحتة: "كم عدد الفواتير؟" "كم المجموع؟"
+    - أسئلة عامة: "وش عندي من فواتير؟"
+  * اجعلها true في:
+    - "ابي صورة فاتورة X" → true
+    - "فاتورة X" → true
+    - "وريني فاتورة X" → true
+    - أي سؤال يذكر متجر/فرع محدد → true
+    
+- **requested_vendor**: استخرج اسم المتجر الأساسي فقط (بدون "شركة"، "فرع"، إلخ):
+  * "فاتورة Keeta" → "Keeta"
+  * "شركة جيرة لتقديم المشروبات - فرع الأكاديمية" → "جيرة"
+  * "مطعم كتا" → "كتا"
+  * احتفظ بالأسماء الإنجليزية كما هي: Keeta, Subway, etc.
 
 **السؤال:**
 "{refined_query}"
@@ -340,7 +346,7 @@ def route_query(refined_query: str) -> RouterDecision:
         decision = RouterDecision(
             mode=router_json.get("mode", "none"),
             reason=router_json.get("reason", ""),
-            show_images=router_json.get("show_images", False),
+            show_images=router_json.get("show_images", True),  # Default to True
             requested_vendor=router_json.get("requested_vendor")
         )
         
@@ -874,6 +880,7 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
         # ════════════════════════════════════════════════════════════════════
         invoices_for_display = []
         if decision.show_images and results:
+            logger.info(f"🖼️ Preparing to display {len(results)} invoices (show_images=True)")
             for item in results:
                 formatted = format_invoice_for_frontend(item)
                 
@@ -882,11 +889,23 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
                     item_vendor = (item.get("vendor") or "").lower()
                     vendor_filter = decision.requested_vendor.lower()
                     
+                    logger.debug(f"   Filtering: '{vendor_filter}' in '{item_vendor}'?")
+                    
                     if vendor_filter not in item_vendor:
+                        logger.debug(f"   ❌ Skipped: {item.get('vendor')} (filter mismatch)")
                         continue
+                    else:
+                        logger.debug(f"   ✅ Matched: {item.get('vendor')}")
                 
-                if formatted.get("id") and formatted.get("vendor"):
+                if formatted.get("id") and formatted.get("vendor") and formatted.get("image_url"):
                     invoices_for_display.append(formatted)
+                    logger.info(f"   📸 Added invoice: {formatted.get('vendor')} (ID: {formatted.get('id')})")
+                elif not formatted.get("image_url"):
+                    logger.warning(f"   ⚠️ Skipped invoice {formatted.get('id')}: No image_url")
+        elif not decision.show_images:
+            logger.info(f"🖼️ show_images=False, not displaying invoice images")
+        elif not results:
+            logger.warning(f"⚠️ No results to display")
             
         # ════════════════════════════════════════════════════════════════════
         # Save to context
