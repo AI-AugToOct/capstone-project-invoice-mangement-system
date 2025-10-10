@@ -209,13 +209,16 @@ def refine_user_query(user_query: str) -> str:
 1. لا تغيّر نية المستخدم أو معنى السؤال
 2. لا تضف معلومات جديدة
 3. فقط نظّف اللهجة وحسّن الصياغة
-4. **احتفظ بالكلمات المفتاحية كما هي EXACTLY** (أسماء المتاجر بالإنجليزية أو العربية، الأرقام، التواريخ)
+4. **احتفظ بالكلمات المفتاحية كاملة** (أسماء المتاجر، الأرقام، التواريخ)
+   - مثال: "الكهرب" → "الكهرباء" (أكمل الكلمة إذا كانت مختصرة)
    - مثال: "Keeta" → أبقِها "Keeta" (لا تغيرها)
    - مثال: "كتا" → أبقِها "كتا"
+   - مثال: "المياه" → "المياه" (لا تقصرها)
 5. **إذا كان اسم المتجر طويل، استخرج الاسم الأساسي فقط**
    - مثال: "شركة جيرة لتقديم المشروبات - فرع الأكاديمية" → "فاتورة جيرة"
    - مثال: "مؤسسة صب واي للأغذية" → "فاتورة صب واي"
    - مثال: "Keeta Restaurant" → "فاتورة Keeta"
+   - مثال: "فاتورة الكهرب" → "فاتورة الكهرباء" (أكمل الكلمة)
 6. أخرج النص المحسّن فقط، بدون شرح أو تعليق
 
 **السؤال الأصلي:**
@@ -314,11 +317,14 @@ def route_query(refined_query: str) -> RouterDecision:
     - "وريني فاتورة X" → true
     - أي سؤال يذكر متجر/فرع محدد → true
     
-- **requested_vendor**: استخرج اسم المتجر الأساسي فقط (بدون "شركة"، "فرع"، إلخ):
+- **requested_vendor**: استخرج اسم المتجر الأساسي كاملاً (بدون "شركة"، "فرع"، لكن أكمل الكلمات المختصرة):
   * "فاتورة Keeta" → "Keeta"
+  * "فاتورة الكهرب" → "الكهرباء" (أكمل الكلمة)
+  * "فاتورة المياه" → "المياه"
   * "شركة جيرة لتقديم المشروبات - فرع الأكاديمية" → "جيرة"
   * "مطعم كتا" → "كتا"
   * احتفظ بالأسماء الإنجليزية كما هي: Keeta, Subway, etc.
+  * **أكمل الكلمات المختصرة في اللهجة**: "الكهرب" → "الكهرباء"
 
 **السؤال:**
 "{refined_query}"
@@ -901,18 +907,44 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
                 
                 formatted = format_invoice_for_frontend(item)
                 
-                # Filter by requested vendor if specified (more flexible matching)
+                # Filter by requested vendor if specified (flexible fuzzy matching)
                 if decision.requested_vendor:
-                    item_vendor = (item.get("vendor") or "").lower()
-                    vendor_filter = decision.requested_vendor.lower()
+                    item_vendor = (item.get("vendor") or "").lower().strip()
+                    vendor_filter = decision.requested_vendor.lower().strip()
                     
-                    logger.info(f"      Filtering: '{vendor_filter}' in '{item_vendor}'?")
+                    logger.info(f"      Filtering: '{vendor_filter}' <-> '{item_vendor}'")
                     
-                    # More flexible matching: check if vendor_filter is in item_vendor OR vice versa
+                    # Flexible matching strategies:
+                    # 1. Direct substring match
+                    # 2. Partial word match (split and check each word)
+                    # 3. Remove common prefixes like "شركة", "مؤسسة", "متجر", "مطعم"
+                    
+                    match_found = False
+                    
+                    # Strategy 1: Direct substring
                     if vendor_filter in item_vendor or item_vendor in vendor_filter:
-                        logger.info(f"      ✅ Matched!")
-                    else:
-                        logger.info(f"      ❌ Skipped (filter mismatch)")
+                        match_found = True
+                        logger.info(f"      ✅ Matched (direct substring)")
+                    
+                    # Strategy 2: Word-level partial match
+                    if not match_found:
+                        vendor_words = vendor_filter.split()
+                        item_words = item_vendor.split()
+                        
+                        # Check if any significant word from vendor_filter is in item_vendor
+                        # Skip common words
+                        common_words = {"شركة", "مؤسسة", "متجر", "مطعم", "فرع", "ل", "و", "من"}
+                        significant_words = [w for w in vendor_words if w not in common_words and len(w) > 2]
+                        
+                        if significant_words:
+                            for word in significant_words:
+                                if any(word in item_word or item_word in word for item_word in item_words):
+                                    match_found = True
+                                    logger.info(f"      ✅ Matched (word match: '{word}')")
+                                    break
+                    
+                    if not match_found:
+                        logger.info(f"      ❌ Skipped (no match found)")
                         continue
                 
                 # Check all required fields
@@ -934,18 +966,20 @@ async def chat_ask(request: ChatRequest, db: Session = Depends(get_db)):
                 
             logger.info(f"\n📊 Final count: {len(invoices_for_display)} invoices added to display")
             
-            # FALLBACK: If no invoices added but we have results with images, add them anyway!
+            # FALLBACK: If no invoices added but we have results with images, add ONLY the first one (highest similarity)
             if len(invoices_for_display) == 0 and results:
-                logger.warning(f"⚠️ FALLBACK: No invoices added through filtering, trying without filter...")
-                for idx, item in enumerate(results, 1):
-                    if item.get("image_url"):
-                        formatted = format_invoice_for_frontend(item)
-                        if formatted.get("id") and formatted.get("vendor"):
-                            invoices_for_display.append(formatted)
-                            logger.info(f"   🆘 FALLBACK: Added invoice {formatted.get('id')} without filter")
-                            if len(invoices_for_display) >= 3:  # Limit to 3
-                                break
-                logger.info(f"📊 After fallback: {len(invoices_for_display)} invoices added")
+                logger.warning(f"⚠️ FALLBACK: No invoices added through filtering (vendor mismatch)")
+                logger.warning(f"   Using first result (highest similarity from RAG)")
+                
+                # Add only the FIRST result (highest similarity from RAG)
+                first_item = results[0]
+                if first_item.get("image_url"):
+                    formatted = format_invoice_for_frontend(first_item)
+                    if formatted.get("id") and formatted.get("vendor"):
+                        invoices_for_display.append(formatted)
+                        logger.info(f"   🆘 FALLBACK: Added TOP result - {formatted.get('vendor')} (ID: {formatted.get('id')})")
+                
+                logger.info(f"📊 After fallback: {len(invoices_for_display)} invoice added (top match only)")
             
         elif not decision.show_images:
             logger.info(f"🖼️ show_images=False, not displaying invoice images")
